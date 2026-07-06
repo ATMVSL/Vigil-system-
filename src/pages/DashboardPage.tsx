@@ -317,6 +317,34 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* ─── Legal Compliance Notice ─── */}
+      <Card className="border-primary/20">
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+              <Shield className="size-3.5" /> Legal Compliance
+            </h3>
+            <div className="text-[11px] leading-relaxed space-y-2">
+              <p className="font-bold text-foreground">
+                INTERACTION WITH ANY AND ALL VIGIL SYSTEMS, LLC PLATFORMS IS CONSIDERED AND LEGALLY BINDING AND CONSTITUTES AGREED UPON USE. ALL USERS ARE SUBJECT TO LEGAL RAMIFICATIONS FOR VIOLATIONS.
+              </p>
+              <p className="font-bold text-foreground">
+                NO USER IS GRANTED PERMISSION — INFERRED OR OTHERWISE — TO UTILIZE ANY OF FOUNDER AND CREATOR STEVEN GONZALES' CONCEPTS, INTELLECTUAL PROPERTY, OR PROPRIETARY PROPERTY.
+              </p>
+              <p className="font-bold text-foreground">
+                ALL CONTENT, SYSTEMS, DOCTRINE, AND TRAINING MATERIALS ARE THE EXCLUSIVE INTELLECTUAL PROPERTY OF VIGIL SYSTEMS, LLC. ALL RIGHTS RESERVED.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-1 text-[9px]">
+              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">NDA</a>
+              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">Terms of Use</a>
+              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">Privacy Policy</a>
+              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">IP Notice</a>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

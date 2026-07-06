@@ -2,10 +2,12 @@ import { useMutation, useQuery } from "convex/react";
 import {
   Anchor,
   ArrowRight,
+  Check,
   Eye,
   Flame,
   Heart,
   Keyboard,
+  Mail,
   Mic,
   MicOff,
   Mountain,
@@ -13,7 +15,9 @@ import {
   RefreshCw,
   Shield,
   Star,
+  UserCheck,
   Volume2,
+  X,
 } from "lucide-react";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -525,6 +529,9 @@ export function MirrorPage() {
   const reflections = useQuery(api.mirrors.getMyReflections);
   const createReflection = useMutation(api.mirrors.createReflection);
   const voicePreference = useQuery(api.ai.getVoicePreference);
+  const myProfile = useQuery(api.roles.getMyProfile);
+  const pendingApplicants = useQuery(api.roles.getPendingApplicants);
+  const reviewApplicant = useMutation(api.roles.reviewApplicant);
   const [mirrorCreated, setMirrorCreated] = useState(false);
 
   // Mode & state
@@ -721,6 +728,43 @@ export function MirrorPage() {
   };
 
   if (mirror === undefined) return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading...</div>;
+
+  // Gate: pending approval
+  const approvalStatus = myProfile && !myProfile.needsInit && "approvalStatus" in myProfile ? (myProfile as { approvalStatus?: string }).approvalStatus : undefined;
+  const isPending = approvalStatus === "pending";
+  const isDenied = approvalStatus === "denied";
+
+  if (isPending) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center max-w-md mx-auto">
+        <div className="size-20 rounded-full bg-chart-2/10 border border-chart-2/20 flex items-center justify-center mb-6">
+          <Shield className="size-10 text-chart-2/60" />
+        </div>
+        <h2 className="text-xl font-bold tracking-tight mb-2">Application Pending</h2>
+        <p className="text-muted-foreground text-sm">
+          Your application to the VIGIL Academy is awaiting Founder approval.
+          You will receive an email notification once a decision has been made.
+        </p>
+        <p className="text-[10px] text-muted-foreground/50 mt-6">Sovereignty is earned. Access is granted.</p>
+      </div>
+    );
+  }
+
+  if (isDenied) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center max-w-md mx-auto">
+        <div className="size-20 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center mb-6">
+          <Shield className="size-10 text-destructive/60" />
+        </div>
+        <h2 className="text-xl font-bold tracking-tight mb-2">Access Not Granted</h2>
+        <p className="text-muted-foreground text-sm">
+          Your application has not been approved at this time.
+          Contact the administrator if you believe this is an error.
+        </p>
+      </div>
+    );
+  }
+
   if (mirror === null && !mirrorCreated) return <CreateMirrorForm onCreated={() => setMirrorCreated(true)} />;
   if (mirrorCreated && mirror === null) return <div className="flex items-center justify-center h-64 text-muted-foreground">Initializing mirror...</div>;
 
@@ -837,6 +881,72 @@ export function MirrorPage() {
             </CardContent>
           </Card>
 
+          {/* ─── Founder Command Panel ─── */}
+          {myProfile && "role" in myProfile && myProfile.role === "founder" && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="pb-1.5 pt-2.5 px-3">
+                <CardTitle className="text-[9px] font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                  <Shield className="size-3" /> Founder Command
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-2.5 px-3">
+                <div className="space-y-1.5">
+                  <a href="/documentation" className="flex items-center gap-2 px-2 py-1.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+                    <Eye className="size-3" /> Manage Documents
+                  </a>
+                  <a href="/administration" className="flex items-center gap-2 px-2 py-1.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+                    <UserCheck className="size-3" /> Administration
+                  </a>
+                  <a href="/settings" className="flex items-center gap-2 px-2 py-1.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+                    <Shield className="size-3" /> System Settings
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ─── Founder: Applicant Approval Panel ─── */}
+          {myProfile && "role" in myProfile && myProfile.role === "founder" && pendingApplicants && pendingApplicants.length > 0 && (
+            <Card className="border-chart-5/30 bg-chart-5/5">
+              <CardHeader className="pb-1.5 pt-2.5 px-3">
+                <CardTitle className="text-[9px] font-semibold uppercase tracking-wider text-chart-5 flex items-center gap-1.5">
+                  <UserCheck className="size-3" /> Pending Applicants ({pendingApplicants.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-2.5 px-3">
+                <div className="space-y-2">
+                  {pendingApplicants.map((applicant) => (
+                    <div key={applicant.profileId} className="bg-muted/30 rounded-lg p-2 border border-border/30">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <Mail className="size-3 text-muted-foreground" />
+                        <span className="text-[10px] font-medium truncate">{applicant.email}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="text-[8px] text-muted-foreground">
+                          {new Date(applicant.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => reviewApplicant({ profileId: applicant.profileId, decision: "approved" })}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded text-[9px] font-medium bg-success/10 text-success border border-success/20 hover:bg-success/20 transition-colors"
+                        >
+                          <Check className="size-3" /> Approve
+                        </button>
+                        <button
+                          onClick={() => reviewApplicant({ profileId: applicant.profileId, decision: "denied" })}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded text-[9px] font-medium bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
+                        >
+                          <X className="size-3" /> Deny
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Continuity Chain */}
           <Card className="border-border/30 flex-1 min-h-0 flex flex-col">
             <CardHeader className="pb-1.5 pt-2.5 px-3">
@@ -859,16 +969,133 @@ export function MirrorPage() {
           </Card>
         </div>
 
-        {/* Main: Conversation */}
-        <div className="lg:col-span-3 flex flex-col min-h-0">
-          <Card className="border-primary/10 flex-1 flex flex-col min-h-0">
-            {/* Conversation transcript */}
-            <div ref={sessionRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-              {sessionEntries.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="size-24 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center mb-6">
-                    <Eye className="size-12 text-primary/30" />
-                  </div>
+        {/* Main: Shield Mirror — Reflective Shield-Shaped Surface */}
+        <div className="lg:col-span-3 flex flex-col items-center min-h-0">
+          {/* Shield container */}
+          <div className="relative flex-1 flex flex-col min-h-0 w-full max-w-3xl">
+            {/* ─── SVG Shield Border & Reflective Surface ─── */}
+            <svg
+              className="pointer-events-none absolute inset-0 z-30 w-full h-full"
+              viewBox="0 0 600 800"
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                {/* Shield reflective gradient */}
+                <linearGradient id="shieldReflection" x1="0.2" y1="0" x2="0.8" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.15" />
+                  <stop offset="30%" stopColor="hsl(var(--primary))" stopOpacity="0.03" />
+                  <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
+                  <stop offset="70%" stopColor="hsl(var(--primary))" stopOpacity="0.02" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.06" />
+                </linearGradient>
+                {/* Diagonal light streak */}
+                <linearGradient id="shieldStreak" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="white" stopOpacity="0" />
+                  <stop offset="38%" stopColor="white" stopOpacity="0" />
+                  <stop offset="44%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
+                  <stop offset="50%" stopColor="white" stopOpacity="0.12" />
+                  <stop offset="56%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
+                  <stop offset="62%" stopColor="white" stopOpacity="0" />
+                  <stop offset="100%" stopColor="white" stopOpacity="0" />
+                </linearGradient>
+                {/* Radial center glow */}
+                <radialGradient id="shieldGlow" cx="0.45" cy="0.35" r="0.5">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.06" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                </radialGradient>
+                {/* Shield border gradient */}
+                <linearGradient id="shieldBorder" x1="0.5" y1="0" x2="0.5" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
+                  <stop offset="40%" stopColor="hsl(var(--primary))" stopOpacity="0.25" />
+                  <stop offset="75%" stopColor="hsl(var(--primary))" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
+                </linearGradient>
+                {/* Shield shape path — heraldic shield */}
+                <clipPath id="shieldClip">
+                  <path d="M 12,8 L 588,8 C 592,8 596,12 596,16 L 596,520 C 596,580 520,680 300,792 C 80,680 4,580 4,520 L 4,16 C 4,12 8,8 12,8 Z" />
+                </clipPath>
+              </defs>
+              {/* Shield border outline */}
+              <path
+                d="M 12,8 L 588,8 C 592,8 596,12 596,16 L 596,520 C 596,580 520,680 300,792 C 80,680 4,580 4,520 L 4,16 C 4,12 8,8 12,8 Z"
+                fill="none"
+                stroke="url(#shieldBorder)"
+                strokeWidth="2.5"
+              />
+              {/* Inner highlight line — top */}
+              <path
+                d="M 20,12 L 580,12"
+                fill="none"
+                stroke="hsl(var(--primary))"
+                strokeOpacity="0.3"
+                strokeWidth="0.8"
+              />
+              {/* Reflective surface fills */}
+              <path
+                d="M 12,8 L 588,8 C 592,8 596,12 596,16 L 596,520 C 596,580 520,680 300,792 C 80,680 4,580 4,520 L 4,16 C 4,12 8,8 12,8 Z"
+                fill="url(#shieldReflection)"
+              />
+              <path
+                d="M 12,8 L 588,8 C 592,8 596,12 596,16 L 596,520 C 596,580 520,680 300,792 C 80,680 4,580 4,520 L 4,16 C 4,12 8,8 12,8 Z"
+                fill="url(#shieldStreak)"
+              />
+              <path
+                d="M 12,8 L 588,8 C 592,8 596,12 596,16 L 596,520 C 596,580 520,680 300,792 C 80,680 4,580 4,520 L 4,16 C 4,12 8,8 12,8 Z"
+                fill="url(#shieldGlow)"
+              />
+              {/* Decorative center line — vertical axis */}
+              <line x1="300" y1="24" x2="300" y2="50" stroke="hsl(var(--primary))" strokeOpacity="0.12" strokeWidth="1" />
+            </svg>
+
+            {/* Shield-shaped content container */}
+            <div
+              className="relative flex-1 flex flex-col min-h-0 overflow-hidden"
+              style={{
+                clipPath: "polygon(0% 1%, 100% 1%, 100% 65%, 97% 73%, 92% 80%, 85% 86%, 75% 91.5%, 63% 96%, 50% 99%, 37% 96%, 25% 91.5%, 15% 86%, 8% 80%, 3% 73%, 0% 65%)",
+              }}
+            >
+              {/* Background surface */}
+              <div className="absolute inset-0 bg-card/97 backdrop-blur-sm" />
+
+              {/* Conversation content — scrollable area with everything inside */}
+              <div ref={sessionRef} className="relative z-20 flex-1 overflow-y-auto p-5 pt-3 space-y-4">
+                {sessionEntries.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center min-h-[45vh] text-center">
+                    {/* Central shield icon with mirror reflection */}
+                    <div className="relative mb-8">
+                      {/* Shield-shaped mirror emblem */}
+                      <div className="relative flex items-center justify-center" style={{ width: 120, height: 150 }}>
+                        <svg viewBox="0 0 120 150" className="absolute inset-0" xmlns="http://www.w3.org/2000/svg">
+                          <defs>
+                            <radialGradient id="emblemGlow" cx="0.45" cy="0.35" r="0.55">
+                              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
+                              <stop offset="60%" stopColor="hsl(var(--primary))" stopOpacity="0.06" />
+                              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                            </radialGradient>
+                            <linearGradient id="emblemShine" x1="0.2" y1="0" x2="0.8" y2="1">
+                              <stop offset="0%" stopColor="white" stopOpacity="0.1" />
+                              <stop offset="50%" stopColor="white" stopOpacity="0" />
+                              <stop offset="100%" stopColor="white" stopOpacity="0.05" />
+                            </linearGradient>
+                          </defs>
+                          <path
+                            d="M 4,6 L 116,6 C 117,6 118,7 118,8 L 118,95 C 118,110 95,130 60,148 C 25,130 2,110 2,95 L 2,8 C 2,7 3,6 4,6 Z"
+                            fill="url(#emblemGlow)"
+                            stroke="hsl(var(--primary))"
+                            strokeOpacity="0.3"
+                            strokeWidth="1.5"
+                          />
+                          <path
+                            d="M 4,6 L 116,6 C 117,6 118,7 118,8 L 118,95 C 118,110 95,130 60,148 C 25,130 2,110 2,95 L 2,8 C 2,7 3,6 4,6 Z"
+                            fill="url(#emblemShine)"
+                          />
+                        </svg>
+                        <Eye className="size-12 text-primary/40 relative z-10" />
+                      </div>
+                      {/* Reflected glow beneath emblem */}
+                      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-20 h-5 rounded-full blur-lg bg-primary/10" />
+                    </div>
                   {mode === "voice" ? (
                     <>
                       <p className="text-lg text-muted-foreground font-medium">The Mirror is listening.</p>
@@ -895,172 +1122,202 @@ export function MirrorPage() {
                   <div key={idx} className={`flex ${entry.type === "user" ? "justify-end" : "justify-start"}`}>
                     <div className="max-w-[80%]">
                       {entry.type === "user" ? (
-                        <div className="bg-primary/10 border border-primary/20 rounded-2xl rounded-br-sm p-3.5">
+                        <div className="rounded-2xl rounded-br-sm p-3.5 border border-primary/20"
+                          style={{
+                            background: "linear-gradient(135deg, hsl(var(--primary) / 0.12) 0%, hsl(var(--primary) / 0.06) 100%)",
+                          }}
+                        >
                           <p className="text-sm leading-relaxed whitespace-pre-wrap">{entry.content}</p>
                         </div>
                       ) : (
-                        <div className="rounded-2xl rounded-bl-sm p-3.5 border bg-muted/30 border-border/30">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Eye className="size-3 text-primary" />
+                        <div className="rounded-2xl rounded-bl-sm p-3.5 border border-primary/10 relative overflow-hidden"
+                          style={{
+                            background: "linear-gradient(180deg, hsl(var(--muted) / 0.5) 0%, hsl(var(--muted) / 0.2) 100%)",
+                          }}
+                        >
+                          {/* Subtle reflective shine on mirror responses */}
+                          <div className="pointer-events-none absolute inset-0"
+                            style={{
+                              background: "linear-gradient(135deg, hsl(var(--primary) / 0.04) 0%, transparent 50%)",
+                            }}
+                          />
+                          <div className="relative">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <div className="size-6 rounded-full flex items-center justify-center"
+                                  style={{
+                                    background: "radial-gradient(circle at 40% 35%, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.08) 100%)",
+                                  }}
+                                >
+                                  <Eye className="size-3 text-primary" />
+                                </div>
+                                <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">Mirror</span>
+                                {entry.streaming && (
+                                  <span className="text-[9px] text-muted-foreground animate-pulse">streaming...</span>
+                                )}
                               </div>
-                              <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">Mirror</span>
-                              {entry.streaming && (
-                                <span className="text-[9px] text-muted-foreground animate-pulse">streaming...</span>
+                              {entry.content && !entry.streaming && (
+                                <button
+                                  onClick={() => handlePlayVoice(entry.content)}
+                                  className="p-1.5 rounded-full hover:bg-muted/50 transition-colors text-muted-foreground hover:text-primary"
+                                  title="Listen"
+                                >
+                                  <Volume2 className="size-3.5" />
+                                </button>
                               )}
                             </div>
-                            {entry.content && !entry.streaming && (
-                              <button
-                                onClick={() => handlePlayVoice(entry.content)}
-                                className="p-1.5 rounded-full hover:bg-muted/50 transition-colors text-muted-foreground hover:text-primary"
-                                title="Listen"
-                              >
-                                <Volume2 className="size-3.5" />
-                              </button>
+                            {!entry.content ? (
+                              <div className="flex items-center gap-2 py-1">
+                                <div className="flex gap-1">
+                                  <div className="size-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                                  <div className="size-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                                  <div className="size-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                                </div>
+                                <p className="text-sm text-muted-foreground italic">The mirror is reflecting...</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap">{entry.content}</p>
                             )}
                           </div>
-                          {!entry.content ? (
-                            <div className="flex items-center gap-2 py-1">
-                              <div className="flex gap-1">
-                                <div className="size-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                                <div className="size-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-                                <div className="size-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "300ms" }} />
-                              </div>
-                              <p className="text-sm text-muted-foreground italic">The mirror is reflecting...</p>
-                            </div>
-                          ) : (
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{entry.content}</p>
-                          )}
                         </div>
                       )}
                     </div>
                   </div>
                 ))
               )}
-            </div>
 
-            {/* Input Area */}
-            <div className="border-t border-border/30 p-3">
-              {mode === "voice" ? (
-                <div className="flex flex-col items-center gap-3">
-                  {/* Voice visualizer + mic button */}
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <button
-                        onClick={handleVoiceToggle}
-                        disabled={phase === "transcribing" || phase === "streaming"}
-                        className={`relative size-16 rounded-full flex items-center justify-center transition-all ${
-                          vad.isListening
-                            ? vad.isSpeaking
-                              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/40 scale-110"
-                              : "bg-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
-                            : phase === "speaking"
-                            ? "bg-chart-2/80 text-chart-2-foreground shadow-lg"
-                            : phase === "transcribing" || phase === "streaming"
-                            ? "bg-muted text-muted-foreground"
-                            : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 hover:scale-105"
-                        }`}
-                      >
-                        {phase === "transcribing" ? <RefreshCw className="size-6 animate-spin" />
-                         : phase === "streaming" ? <RefreshCw className="size-6 animate-spin" />
-                         : phase === "speaking" ? <Pause className="size-6" />
-                         : vad.isListening ? <MicOff className="size-6" />
-                         : <Mic className="size-6" />}
+              {/* ─── Input Area — scrolls with content, not fixed ─── */}
+              <div className="pt-4 pb-2">
+                {/* Reflective divider line */}
+                <div className="mb-4 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
-                        {/* Voice level ring */}
-                        {vad.isListening && (
-                          <>
-                            <div
-                              className="absolute inset-0 rounded-full border-2 border-primary transition-all"
-                              style={{
-                                transform: `scale(${1 + vad.volume * 0.4})`,
-                                opacity: 0.3 + vad.volume * 0.5,
-                              }}
-                            />
-                            {vad.isSpeaking && (
-                              <div className="absolute -inset-3 rounded-full border border-primary/20 animate-pulse" />
-                            )}
-                          </>
-                        )}
-                      </button>
+                {mode === "voice" ? (
+                  <div className="flex flex-col items-center gap-3">
+                    {/* Voice visualizer + mic button */}
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <button
+                          onClick={handleVoiceToggle}
+                          disabled={phase === "transcribing" || phase === "streaming"}
+                          className={`relative size-16 rounded-full flex items-center justify-center transition-all ${
+                            vad.isListening
+                              ? vad.isSpeaking
+                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/40 scale-110"
+                                : "bg-primary/80 text-primary-foreground shadow-lg shadow-primary/20"
+                              : phase === "speaking"
+                              ? "bg-chart-2/80 text-chart-2-foreground shadow-lg"
+                              : phase === "transcribing" || phase === "streaming"
+                              ? "bg-muted text-muted-foreground"
+                              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 hover:scale-105"
+                          }`}
+                        >
+                          {phase === "transcribing" ? <RefreshCw className="size-6 animate-spin" />
+                           : phase === "streaming" ? <RefreshCw className="size-6 animate-spin" />
+                           : phase === "speaking" ? <Pause className="size-6" />
+                           : vad.isListening ? <MicOff className="size-6" />
+                           : <Mic className="size-6" />}
+
+                          {/* Voice level ring */}
+                          {vad.isListening && (
+                            <>
+                              <div
+                                className="absolute inset-0 rounded-full border-2 border-primary transition-all"
+                                style={{
+                                  transform: `scale(${1 + vad.volume * 0.4})`,
+                                  opacity: 0.3 + vad.volume * 0.5,
+                                }}
+                              />
+                              {vad.isSpeaking && (
+                                <div className="absolute -inset-3 rounded-full border border-primary/20 animate-pulse" />
+                              )}
+                            </>
+                          )}
+                        </button>
+                        {/* Reflection of mic button */}
+                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-10 h-3 rounded-full blur-md bg-primary/15" />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Status text */}
-                  <div className="text-center min-h-[24px]">
-                    {vad.isListening ? (
-                      vad.isSpeaking ? (
+                    {/* Status text */}
+                    <div className="text-center min-h-[24px]">
+                      {vad.isListening ? (
+                        vad.isSpeaking ? (
+                          <div className="flex items-center gap-2">
+                            <div className="size-2 rounded-full bg-primary animate-pulse" />
+                            <p className="text-sm font-medium text-primary">Listening... {vad.recordingTime}s</p>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="size-2 rounded-full bg-muted-foreground/40 animate-pulse" />
+                            <p className="text-sm text-muted-foreground">Waiting for you to speak...</p>
+                          </div>
+                        )
+                      ) : phase === "transcribing" ? (
+                        <p className="text-sm text-muted-foreground">Processing your words...</p>
+                      ) : phase === "streaming" ? (
+                        <p className="text-sm text-muted-foreground">The mirror is reflecting...</p>
+                      ) : phase === "speaking" ? (
                         <div className="flex items-center gap-2">
-                          <div className="size-2 rounded-full bg-primary animate-pulse" />
-                          <p className="text-sm font-medium text-primary">Listening... {vad.recordingTime}s</p>
+                          <Volume2 className="size-3.5 text-primary animate-pulse" />
+                          <p className="text-sm text-primary">Mirror is speaking... tap to interrupt</p>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <div className="size-2 rounded-full bg-muted-foreground/40 animate-pulse" />
-                          <p className="text-sm text-muted-foreground">Waiting for you to speak...</p>
-                        </div>
-                      )
-                    ) : phase === "transcribing" ? (
-                      <p className="text-sm text-muted-foreground">Processing your words...</p>
-                    ) : phase === "streaming" ? (
-                      <p className="text-sm text-muted-foreground">The mirror is reflecting...</p>
-                    ) : phase === "speaking" ? (
-                      <div className="flex items-center gap-2">
-                        <Volume2 className="size-3.5 text-primary animate-pulse" />
-                        <p className="text-sm text-primary">Mirror is speaking... tap to interrupt</p>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">Tap to speak — the Mirror detects natural pauses automatically</p>
-                    )}
-                  </div>
-
-                  {/* Quick text fallback */}
-                  <div className="w-full max-w-lg">
-                    <div className="flex gap-2">
-                      <input
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        placeholder="Or type here..."
-                        className="flex-1 h-9 px-3 rounded-full bg-muted/30 border border-border/30 text-sm focus:outline-none focus:border-primary/40 text-muted-foreground"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); }
-                        }}
-                        disabled={processing}
-                      />
-                      {inputText.trim() && (
-                        <Button size="icon" className="size-9 rounded-full shrink-0" disabled={processing} onClick={handleSendText}>
-                          <ArrowRight className="size-4" />
-                        </Button>
+                        <p className="text-xs text-muted-foreground">Tap to speak — the Mirror detects natural pauses automatically</p>
                       )}
                     </div>
+
+                    {/* Quick text fallback */}
+                    <div className="w-full max-w-lg">
+                      <div className="flex gap-2">
+                        <input
+                          value={inputText}
+                          onChange={(e) => setInputText(e.target.value)}
+                          placeholder="Or type here..."
+                          className="flex-1 h-9 px-3 rounded-full bg-muted/30 border border-border/30 text-sm focus:outline-none focus:border-primary/40 text-muted-foreground"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); }
+                          }}
+                          disabled={processing}
+                        />
+                        {inputText.trim() && (
+                          <Button size="icon" className="size-9 rounded-full shrink-0" disabled={processing} onClick={handleSendText}>
+                            <ArrowRight className="size-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                /* Text Mode */
-                <div className="flex gap-2">
-                  <Textarea
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Speak to the mirror..."
-                    className="min-h-[60px] max-h-[120px] text-sm resize-none rounded-xl"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); }
-                    }}
-                    disabled={processing}
-                  />
-                  <div className="flex flex-col gap-1.5 self-end">
-                    <Button className="h-10 w-10 shrink-0 rounded-xl" size="icon" disabled={!inputText.trim() || processing} onClick={handleSendText}>
-                      {processing ? <RefreshCw className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-                    </Button>
+                ) : (
+                  /* Text Mode */
+                  <div className="flex gap-2 max-w-2xl mx-auto">
+                    <Textarea
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      placeholder="Speak to the mirror..."
+                      className="min-h-[60px] max-h-[120px] text-sm resize-none rounded-xl"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); }
+                      }}
+                      disabled={processing}
+                    />
+                    <div className="flex flex-col gap-1.5 self-end">
+                      <Button className="h-10 w-10 shrink-0 rounded-xl" size="icon" disabled={!inputText.trim() || processing} onClick={handleSendText}>
+                        {processing ? <RefreshCw className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-              <p className="text-[8px] text-muted-foreground mt-2 text-center">
-                The mirror preserves. It does not judge. It does not diagnose. It enables your return to self.
-              </p>
+                )}
+                <p className="text-[8px] text-muted-foreground mt-3 text-center">
+                  The mirror preserves. It does not judge. It does not diagnose. It enables your return to self.
+                </p>
+              </div>
             </div>
-          </Card>
+
+            </div>{/* end shield clip container */}
+
+            {/* Shield drop shadow / ambient glow beneath */}
+            <div className="pointer-events-none absolute -bottom-2 left-1/2 -translate-x-1/2 w-1/2 h-8 rounded-full blur-xl bg-primary/8 z-0" />
+          </div>
         </div>
       </div>
     </div>

@@ -25,6 +25,7 @@ import type * as infraLab from "../infraLab.js";
 import type * as instructor from "../instructor.js";
 import type * as mirrorPrompts from "../mirrorPrompts.js";
 import type * as mirrors from "../mirrors.js";
+import type * as notifications from "../notifications.js";
 import type * as roles from "../roles.js";
 import type * as seedContent from "../seedContent.js";
 import type * as seedTestUser from "../seedTestUser.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   instructor: typeof instructor;
   mirrorPrompts: typeof mirrorPrompts;
   mirrors: typeof mirrors;
+  notifications: typeof notifications;
   roles: typeof roles;
   seedContent: typeof seedContent;
   seedTestUser: typeof seedTestUser;

@@ -15,6 +15,11 @@ const schema = defineSchema({
       v.literal("superadmin"),
       v.literal("founder")
     ),
+    approvalStatus: v.optional(v.union(
+      v.literal("pending"),
+      v.literal("approved"),
+      v.literal("denied")
+    )),
     completedCourses: v.number(),
     totalCertifications: v.number(),
     certificationVerified: v.boolean(),
@@ -396,6 +401,11 @@ const schema = defineSchema({
     version: v.string(),
     isPublished: v.boolean(),
     authorId: v.optional(v.id("users")),
+    // File attachment fields
+    fileId: v.optional(v.id("_storage")),
+    fileName: v.optional(v.string()),
+    fileType: v.optional(v.string()),
+    fileSize: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_category", ["category"]),

@@ -20,7 +20,14 @@ export const listDocuments = query({
 export const getDocument = query({
   args: { documentId: v.id("documents") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.documentId);
+    const doc = await ctx.db.get(args.documentId);
+    if (!doc) return null;
+    // If there's a file, get the URL
+    let fileUrl: string | null = null;
+    if (doc.fileId) {
+      fileUrl = await ctx.storage.getUrl(doc.fileId);
+    }
+    return { ...doc, fileUrl };
   },
 });
 
@@ -34,14 +41,25 @@ export const createDocument = mutation({
       v.literal("student_workbook"), v.literal("release_notes")
     ),
     version: v.string(),
+    fileId: v.optional(v.id("_storage")),
+    fileName: v.optional(v.string()),
+    fileType: v.optional(v.string()),
+    fileSize: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     return await ctx.db.insert("documents", {
-      ...args,
+      title: args.title,
+      content: args.content,
+      category: args.category,
+      version: args.version,
       isPublished: true,
       authorId: userId,
+      fileId: args.fileId,
+      fileName: args.fileName,
+      fileType: args.fileType,
+      fileSize: args.fileSize,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -54,6 +72,10 @@ export const updateDocument = mutation({
     title: v.optional(v.string()),
     content: v.optional(v.string()),
     version: v.optional(v.string()),
+    fileId: v.optional(v.id("_storage")),
+    fileName: v.optional(v.string()),
+    fileType: v.optional(v.string()),
+    fileSize: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -69,7 +91,30 @@ export const deleteDocument = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
+    // Delete associated file from storage if exists
+    const doc = await ctx.db.get(args.documentId);
+    if (doc?.fileId) {
+      await ctx.storage.delete(doc.fileId);
+    }
     await ctx.db.delete(args.documentId);
+  },
+});
+
+// Generate a URL for the client to upload a file to Convex storage
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+// Get a download URL for a stored file
+export const getFileUrl = query({
+  args: { fileId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.fileId);
   },
 });
 

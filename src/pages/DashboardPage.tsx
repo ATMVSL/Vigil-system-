@@ -49,18 +49,19 @@ export function DashboardPage() {
   const seedDoctrine = useMutation(api.admin.seedDoctrineData);
   const seedPlatform = useMutation(api.admin.seedPlatformData);
   const seedContent = useMutation(api.seedContent.seedTrainingContent);
+  const seedLegal = useMutation(api.admin.seedLegalDocs);
   const initProfile = useMutation(api.roles.initProfile);
 
   useEffect(() => {
     if (!stats) return;
     if (stats.doctrine.total === 0) {
       // First visit: seed everything
-      seedDoctrine().then(() => seedPlatform()).then(() => seedContent()).catch(() => {});
+      seedDoctrine().then(() => seedPlatform()).then(() => seedContent()).then(() => seedLegal()).catch(() => {});
     } else {
       // Doctrine exists but lessons may not — seed content separately
       seedContent().catch(() => {});
     }
-  }, [stats, seedDoctrine, seedPlatform, seedContent]);
+  }, [stats, seedDoctrine, seedPlatform, seedContent, seedLegal]);
 
   useEffect(() => {
     // Auto-init profile on first login

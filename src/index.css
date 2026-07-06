@@ -253,6 +253,50 @@
   --chart-1: oklch(0.4 0.02 260);
 }
 
+/* Royal Purple */
+[data-color-scheme="vigil-purple"] {
+  --primary: oklch(0.65 0.18 300);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.65 0.18 300);
+  --sidebar-primary: oklch(0.65 0.18 300);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --accent: oklch(0.18 0.015 300);
+  --sidebar-accent: oklch(0.15 0.015 300);
+  --chart-1: oklch(0.65 0.18 300);
+}
+.light[data-color-scheme="vigil-purple"] {
+  --primary: oklch(0.45 0.18 300);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.45 0.18 300);
+  --sidebar-primary: oklch(0.45 0.18 300);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --accent: oklch(0.94 0.008 300);
+  --sidebar-accent: oklch(0.94 0.008 300);
+  --chart-1: oklch(0.45 0.18 300);
+}
+
+/* Ember Fire */
+[data-color-scheme="vigil-ember"] {
+  --primary: oklch(0.68 0.19 45);
+  --primary-foreground: oklch(0.12 0 0);
+  --ring: oklch(0.68 0.19 45);
+  --sidebar-primary: oklch(0.68 0.19 45);
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  --accent: oklch(0.18 0.012 45);
+  --sidebar-accent: oklch(0.15 0.012 45);
+  --chart-1: oklch(0.68 0.19 45);
+}
+.light[data-color-scheme="vigil-ember"] {
+  --primary: oklch(0.52 0.19 45);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.52 0.19 45);
+  --sidebar-primary: oklch(0.52 0.19 45);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --accent: oklch(0.94 0.006 45);
+  --sidebar-accent: oklch(0.94 0.006 45);
+  --chart-1: oklch(0.52 0.19 45);
+}
+
 @layer components {
   .container {
     width: 100%;

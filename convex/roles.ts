@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { internal } from "./_generated/api";
 
 // Founder email — full unrestricted access
 const FOUNDER_EMAILS = [
@@ -83,6 +84,7 @@ export const initProfile = mutation({
     const profileId = await ctx.db.insert("userProfiles", {
       userId,
       role: isFounder ? "founder" : "operator",
+      approvalStatus: isFounder ? "approved" : "pending",
       completedCourses: 0,
       totalCertifications: 0,
       certificationVerified: false,
@@ -92,11 +94,20 @@ export const initProfile = mutation({
 
     await ctx.db.insert("activityLog", {
       userId,
-      action: isFounder ? "Founder profile initialized" : "Operator profile initialized",
+      action: isFounder ? "Founder profile initialized" : "New applicant — pending approval",
       module: "system",
-      details: `Role: ${isFounder ? "FOUNDER" : "OPERATOR"}`,
+      details: `Role: ${isFounder ? "FOUNDER" : "OPERATOR (PENDING)"}`,
       createdAt: Date.now(),
     });
+
+    // Send email notification to Founder for new (non-founder) applicants
+    if (!isFounder && user?.email) {
+      await ctx.scheduler.runAfter(0, internal.notifications.notifyFounderNewApplicant, {
+        applicantEmail: user.email,
+        applicantId: userId,
+        timestamp: Date.now(),
+      });
+    }
 
     return profileId;
   },
@@ -237,6 +248,112 @@ export const setUserRole = mutation({
       details: `Target: ${targetUserId}`,
       createdAt: Date.now(),
     });
+  },
+});
+
+// ─── APPLICANT APPROVAL SYSTEM ───
+
+// Get all pending applicants (Founder only)
+export const getPendingApplicants = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    // Only founders can see pending applicants
+    const myProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!myProfile || myProfile.role !== "founder") return [];
+
+    // Get all profiles with pending status
+    const allProfiles = await ctx.db.query("userProfiles").collect();
+    const pendingProfiles = allProfiles.filter(
+      (p) => p.approvalStatus === "pending"
+    );
+
+    // Enrich with user email info
+    const results = [];
+    for (const profile of pendingProfiles) {
+      const user = await ctx.db.get(profile.userId);
+      results.push({
+        profileId: profile._id,
+        userId: profile.userId,
+        email: user?.email || "unknown",
+        createdAt: profile.createdAt,
+      });
+    }
+
+    return results;
+  },
+});
+
+// Approve or deny an applicant (Founder only)
+export const reviewApplicant = mutation({
+  args: {
+    profileId: v.id("userProfiles"),
+    decision: v.union(v.literal("approved"), v.literal("denied")),
+  },
+  handler: async (ctx, { profileId, decision }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    // Only founders can approve/deny
+    const myProfile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!myProfile || myProfile.role !== "founder") {
+      throw new Error("Only the Founder can approve or deny applicants");
+    }
+
+    const targetProfile = await ctx.db.get(profileId);
+    if (!targetProfile) throw new Error("Profile not found");
+
+    await ctx.db.patch(profileId, { approvalStatus: decision });
+
+    // Get applicant email for notification
+    const targetUser = await ctx.db.get(targetProfile.userId);
+
+    await ctx.db.insert("activityLog", {
+      userId,
+      action: `Applicant ${decision}: ${targetUser?.email || "unknown"}`,
+      module: "admin",
+      details: `Decision: ${decision.toUpperCase()}`,
+      createdAt: Date.now(),
+    });
+
+    // Notify applicant of decision
+    if (targetUser?.email) {
+      await ctx.scheduler.runAfter(0, internal.notifications.notifyApplicantDecision, {
+        applicantEmail: targetUser.email,
+        approved: decision === "approved",
+      });
+    }
+  },
+});
+
+// Get approval status for current user
+export const getMyApprovalStatus = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!profile) return null;
+
+    // Founders are always approved
+    if (profile.role === "founder") return "approved";
+
+    return profile.approvalStatus || "approved"; // Legacy profiles without status are approved
   },
 });
 

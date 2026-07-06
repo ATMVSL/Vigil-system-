@@ -640,3 +640,307 @@ export const seedPlatformData = mutation({
     return "seeded";
   },
 });
+
+// ─── SEED LEGAL DOCUMENTS ───
+export const seedLegalDocs = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    // Delete old legal docs and re-seed with updated language
+    const existing = await ctx.db.query("documents").collect();
+    const legalTitles = ["Non-Disclosure Agreement", "Terms of Use", "Privacy Policy", "Intellectual Property"];
+    for (const doc of existing) {
+      if (doc.category === "founder_doctrine" && legalTitles.some(t => doc.title.includes(t))) {
+        await ctx.db.delete(doc._id);
+      }
+    }
+
+    const now = Date.now();
+
+    const dateStr = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+    const legalDocs = [
+      {
+        title: "VIGIL Systems — Non-Disclosure Agreement (NDA)",
+        category: "founder_doctrine" as const,
+        version: "2.0",
+        content: `VIGIL SYSTEMS, LLC — NON-DISCLOSURE AGREEMENT
+
+EFFECTIVE DATE: Upon any interaction with Vigil Systems, LLC or any of its platforms, products, or services.
+PARTIES: Vigil Systems, LLC, a Limited Liability Corporation ("Company," "VIGIL"), and any individual or entity accessing, viewing, or interacting with the Company's systems, platforms, or materials ("Participant").
+
+NOTICE: INTERACTION WITH ANY AND ALL VIGIL SYSTEMS, LLC AND VIGIL SYSTEMS, LLC LIMITED LIABILITY CORPORATION PLATFORMS, PRODUCTS, SERVICES, MATERIALS, OR SYSTEMS IS CONSIDERED AND LEGALLY BINDING. BY ACCESSING, VIEWING, OR USING ANY VIGIL SYSTEM, YOU HAVE AGREED TO THESE TERMS AND ARE SUBJECT TO LEGAL RAMIFICATIONS FOR ANY VIOLATION.
+
+NO USER IS GRANTED PERMISSION — INFERRED OR OTHERWISE — TO UTILIZE ANY OF FOUNDER AND CREATOR STEVEN GONZALES' CONCEPTS, INTELLECTUAL PROPERTY, OR PROPRIETARY PROPERTY.
+
+1. DEFINITION OF CONFIDENTIAL INFORMATION
+"Confidential Information" includes, without limitation:
+• ALL concepts, ideas, systems, architectures, and methodologies created by Founder Steven Gonzales, whether documented or undocumented
+• The VIGIL architecture in its entirety, including but not limited to the Self-Filling Waterfall, Continuity Anchor Mirror™, Cognitive Loop Pipeline, SELF Doctrine, and all related system designs
+• SELF Doctrine content — the six pillars (Structure, Endurance, Legacy, Fortitude, Continuity, Presence) and all associated training materials, frameworks, and methodologies
+• Source code, algorithms, data schemas, API designs, system configurations, and deployment architectures
+• Training curricula, assessment methods, certification processes, grading rubrics, and educational frameworks
+• User data, engagement patterns, cognitive state models, behavioral analytics, and any derived insights
+• Business strategies, partnerships, financial information, and proprietary operational methods
+• The names, likenesses, stories, and service records of the six SELF pillar service members
+• Any and all information encountered through interaction with any VIGIL system, whether marked confidential or not
+
+2. ABSOLUTE OBLIGATIONS
+The Participant agrees to:
+• Not disclose, publish, reproduce, distribute, or disseminate any Confidential Information to any third party under any circumstances without prior written consent from Founder Steven Gonzales
+• Not use Confidential Information for any purpose whatsoever outside of authorized VIGIL Academy activities
+• Not reverse-engineer, decompile, disassemble, or attempt to derive or extract source code, system architecture, algorithms, or methodologies from any VIGIL platform
+• Not create derivative works based on, inspired by, or substantially similar to any VIGIL concept, system, or methodology
+• Not photograph, screenshot, record, or capture any portion of the VIGIL platform for external distribution
+• Protect Confidential Information with the highest degree of care
+• Immediately notify the Company upon discovery of any unauthorized disclosure, use, or attempted access
+
+3. NO IMPLIED RIGHTS OR PERMISSIONS
+• NO permission is granted — expressed, implied, inferred, or otherwise — to utilize, reproduce, adapt, or build upon any concept, system, methodology, or intellectual property created by Founder Steven Gonzales or owned by Vigil Systems, LLC
+• Access to the platform does not constitute a license of any kind
+• Viewing, reading, or interacting with any VIGIL material does not transfer any rights to the Participant
+• Verbal, written, or digital communication with any VIGIL system or representative does not constitute permission to use proprietary material
+
+4. EXCEPTIONS
+This agreement does not apply to information that:
+• Is or becomes publicly available through no fault of the Participant
+• Was lawfully known to the Participant prior to disclosure, with documented proof
+• Is independently developed without any reference to Confidential Information, with documented proof
+• Is required to be disclosed by valid court order or subpoena (with immediate notice to Company prior to disclosure)
+
+5. INTELLECTUAL PROPERTY
+• ALL VIGIL systems, doctrine, concepts, training content, platform technology, methodologies, and associated intellectual property are and remain the exclusive, sole property of Vigil Systems, LLC and its Founder, Steven Gonzales
+• No license, ownership, usage rights, or intellectual property rights of any kind are transferred to the Participant through platform access or interaction
+• Any contributions, feedback, suggestions, or improvements communicated by the Participant become the irrevocable property of the Company
+• All trademarks, service marks, trade names, and trade dress associated with VIGIL are the property of Vigil Systems, LLC
+
+6. DURATION
+This NDA takes effect upon first interaction with any VIGIL system and remains in effect PERPETUALLY. The obligations herein survive termination of access indefinitely.
+
+7. REMEDIES AND ENFORCEMENT
+Any breach of this agreement shall result in:
+• Immediate and permanent termination of all platform access
+• Pursuit of all available legal remedies including injunctive relief, compensatory damages, punitive damages, and recovery of attorney's fees
+• Reporting to relevant law enforcement and regulatory authorities where applicable
+• The breaching party shall be liable for all costs of enforcement
+
+8. GOVERNING LAW AND JURISDICTION
+This agreement shall be governed by and construed in accordance with the laws of the State of Texas, United States of America. Any disputes shall be resolved in the courts of Texas.
+
+BY INTERACTING WITH ANY VIGIL SYSTEM IN ANY CAPACITY, THE PARTICIPANT ACKNOWLEDGES THEY HAVE READ, UNDERSTOOD, AND AGREE TO BE LEGALLY BOUND BY ALL TERMS OF THIS NON-DISCLOSURE AGREEMENT.
+
+VIGIL SYSTEMS, LLC — LIMITED LIABILITY CORPORATION
+Founder & Creator: Steven Gonzales
+Veteran Identity Garrison for Intentional Living`,
+      },
+      {
+        title: "VIGIL Systems — Terms of Use",
+        category: "founder_doctrine" as const,
+        version: "2.0",
+        content: `VIGIL SYSTEMS, LLC — TERMS OF USE
+
+EFFECTIVE DATE: Upon any interaction.
+LAST UPDATED: ${dateStr}
+
+LEGAL NOTICE: INTERACTION WITH ANY AND ALL VIGIL SYSTEMS, LLC AND VIGIL SYSTEMS, LLC LIMITED LIABILITY CORPORATION PLATFORMS, PRODUCTS, SERVICES, OR MATERIALS IS CONSIDERED AND LEGALLY BINDING AND CONSTITUTES AGREED UPON USE. ALL USERS ARE SUBJECT TO LEGAL RAMIFICATIONS FOR VIOLATIONS. NO USER IS GRANTED PERMISSION — INFERRED OR OTHERWISE — TO UTILIZE ANY OF FOUNDER AND CREATOR STEVEN GONZALES' CONCEPTS, INTELLECTUAL PROPERTY, OR PROPRIETARY PROPERTY.
+
+1. ACCEPTANCE OF TERMS
+By accessing, viewing, or interacting with any VIGIL Systems, LLC platform, product, service, or material ("Platform") in any capacity, you unconditionally agree to be bound by these Terms of Use, the Non-Disclosure Agreement, the Privacy Policy, and the Intellectual Property Notice. If you do not agree, you must immediately cease all interaction.
+
+2. PROPRIETARY PLATFORM
+VIGIL Academy is the exclusive proprietary training and cognitive engagement platform of Vigil Systems, LLC. All systems, methodologies, content, and technology are the original creation and property of Founder Steven Gonzales. The Platform includes but is not limited to:
+• The Continuity Anchor Mirror™ — a proprietary cognitive engagement system
+• SELF Doctrine — a proprietary self-development framework
+• All training curricula, labs, assessments, certifications, and educational content
+• All source code, algorithms, architectures, and system designs
+
+3. ACCOUNT REQUIREMENTS
+• You must provide accurate, truthful information during registration
+• You are solely responsible for the security of your account credentials
+• All new accounts require Founder approval before access is granted
+• One account per person — no shared, duplicate, or anonymous accounts
+• Account creation constitutes acceptance of all legal agreements
+
+4. ACCEPTABLE USE
+You agree to use the Platform solely for authorized training, learning, and self-development as intended by the Founder. You agree NOT to:
+• Share, redistribute, reproduce, or publicly post any Platform content
+• Attempt to access systems, data, or features beyond your authorized role
+• Use automated tools, bots, scrapers, or AI systems to extract content
+• Reverse-engineer, decompile, or analyze the platform's technology
+• Create competing, derivative, or substantially similar systems
+• Misrepresent your identity, role, certifications, or affiliation with VIGIL
+
+5. INTELLECTUAL PROPERTY — ABSOLUTE PROTECTION
+ALL content, design, architecture, code, concepts, methodologies, doctrine, training materials, and every element of the Platform are the exclusive intellectual property of Vigil Systems, LLC and Founder Steven Gonzales. Protected by applicable copyright, trademark, trade secret, and patent laws. NO rights are transferred through use.
+
+6. ROLE-BASED ACCESS
+• Access is progressive and controlled: Operator → Certified → Admin → Superadmin → Founder
+• The Founder retains absolute, sole, and final authority over all access decisions
+• Access may be revoked at any time without notice and without cause
+
+7. TERMINATION
+Vigil Systems, LLC reserves the absolute right to suspend, restrict, or permanently terminate any user's access at any time, for any reason or no reason, with or without notice.
+
+8. DISCLAIMER
+THE PLATFORM IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.
+
+9. LIMITATION OF LIABILITY
+IN NO EVENT SHALL VIGIL SYSTEMS, LLC, ITS FOUNDER, OR ITS AFFILIATES BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES.
+
+10. GOVERNING LAW
+These Terms shall be governed by and construed under the laws of the State of Texas, United States of America.
+
+VIGIL SYSTEMS, LLC — LIMITED LIABILITY CORPORATION
+Founder & Creator: Steven Gonzales
+Veteran Identity Garrison for Intentional Living`,
+      },
+      {
+        title: "VIGIL Systems — Privacy Policy & Data Rights",
+        category: "founder_doctrine" as const,
+        version: "2.0",
+        content: `VIGIL SYSTEMS, LLC — PRIVACY POLICY & DATA RIGHTS
+
+EFFECTIVE DATE: Upon any interaction.
+LAST UPDATED: ${dateStr}
+
+1. INTRODUCTION
+Vigil Systems, LLC ("Company," "we," "us"), founded by Steven Gonzales, is committed to protecting the privacy and data rights of all users. This Privacy Policy is legally binding upon interaction with any VIGIL system.
+
+2. INFORMATION WE COLLECT
+• Account Information: Email address, callsign, role level, approval status
+• Training Data: Course progress, assessment scores, certification status
+• Mirror Interactions: Cognitive state classifications, saved reflections
+• Technical Data: Browser type, access timestamps, session duration
+• Voice Data: Processed in real-time for transcription — NOT stored
+
+3. HOW WE USE YOUR INFORMATION
+• To provide and operate the VIGIL Academy platform
+• To track training progress and certification status
+• To enable the Continuity Anchor Mirror™ engagement system
+• To communicate important account and platform updates
+
+4. ABSOLUTE DATA PROTECTIONS
+• We do NOT sell, share, license, or provide your personal information to any third party — under any circumstances
+• We do NOT share data with advertisers, marketers, data brokers, or analytics companies
+• We do NOT use Mirror interactions for any purpose other than your personal engagement
+• We do NOT store voice recordings — audio is transcribed in real-time and immediately discarded
+• We do NOT conduct behavioral profiling for external purposes
+• We do NOT transmit data to any government entity without a valid, enforceable legal order
+• We do NOT use your data to train external AI models or systems
+
+5. DATA STORAGE AND SECURITY
+• All data encrypted at rest and in transit
+• Per-user engine isolation — your Mirror experience is private to you alone
+• Access restricted to Founder and authorized system administrators only
+• Industry-standard security practices enforced at all levels
+
+6. YOUR RIGHTS
+You have the right to:
+• Access your personal data and training records
+• Request correction of inaccurate information
+• Request deletion of your account and all associated data
+• Withdraw consent (which terminates platform access)
+• Receive a portable copy of your data upon written request
+
+7. DATA RETENTION
+• Active data retained during membership
+• Data removed within 30 days of account deletion
+• No data is retained after deletion for any purpose
+
+8. NO TRACKING
+• Essential authentication cookies only
+• ZERO third-party tracking, analytics, or advertising pixels
+
+9. CHILDREN'S PRIVACY
+Not intended for individuals under 18. No data knowingly collected from minors.
+
+10. CONTACT
+Email: steven.gonzales@vigilsysllc.com
+Entity: Vigil Systems, LLC
+
+11. GOVERNING LAW
+Governed by the laws of the State of Texas, United States of America.
+
+VIGIL SYSTEMS, LLC — LIMITED LIABILITY CORPORATION
+Founder & Creator: Steven Gonzales
+Veteran Identity Garrison for Intentional Living
+"Knowledge flows down, never up." — Cardinal Axiom`,
+      },
+      {
+        title: "VIGIL Systems — Intellectual Property Notice",
+        category: "founder_doctrine" as const,
+        version: "1.0",
+        content: `VIGIL SYSTEMS, LLC — INTELLECTUAL PROPERTY NOTICE
+
+ALL RIGHTS RESERVED. © VIGIL SYSTEMS, LLC. STEVEN GONZALES, FOUNDER & CREATOR.
+
+NOTICE TO ALL PARTIES:
+
+Interaction with any and all Vigil Systems, LLC and Vigil Systems, LLC Limited Liability Corporation platforms, products, services, systems, materials, documentation, or communications is considered and legally binding and constitutes agreed upon use. All parties are subject to legal ramifications for any violation of these terms.
+
+NO USER IS GRANTED PERMISSION — INFERRED OR OTHERWISE — TO UTILIZE ANY OF FOUNDER AND CREATOR STEVEN GONZALES' CONCEPTS, INTELLECTUAL PROPERTY, OR PROPRIETARY PROPERTY.
+
+PROTECTED INTELLECTUAL PROPERTY INCLUDES BUT IS NOT LIMITED TO:
+
+1. SYSTEMS & ARCHITECTURE
+• The VIGIL platform and all constituent systems
+• The Continuity Anchor Mirror™ and all mirror-based engagement technology
+• The Self-Filling Waterfall Architecture
+• The 13-Stage Cognitive Loop Pipeline
+• All cognitive state band classifications and response protocols
+• All deployment architectures, schemas, and system designs
+
+2. DOCTRINE & METHODOLOGY
+• The SELF Doctrine framework in its entirety
+• The six pillars: Structure, Endurance, Legacy, Fortitude, Continuity, Presence
+• The five Immutable Axioms: Sovereignty, No Probing, No Override, Continuity, Cardinal
+• All training curricula, educational methodologies, and certification frameworks
+• The concept of "Veteran Identity Garrison for Intentional Living"
+
+3. CREATIVE & NARRATIVE ELEMENTS
+• The names, stories, and memorial designations of the six SELF pillar service members
+• All callsign systems and naming conventions
+• All visual design, branding, and user interface designs
+• All written content, documentation, and instructional materials
+
+4. TECHNOLOGY
+• All source code, algorithms, and software implementations
+• All API designs, data models, and system configurations
+• All AI prompt engineering, system prompts, and model integration methods
+• All voice interaction systems and real-time processing architectures
+
+ENFORCEMENT:
+Any unauthorized use, reproduction, distribution, modification, reverse-engineering, or creation of derivative works based on any VIGIL intellectual property will be met with the full force of applicable law, including but not limited to:
+• Federal copyright infringement claims (17 U.S.C. § 501)
+• Trade secret misappropriation claims (Defend Trade Secrets Act)
+• Trademark infringement claims (Lanham Act)
+• Breach of contract and NDA violation claims
+• Injunctive relief, compensatory damages, punitive damages, and attorney's fees
+
+This notice applies to all individuals, organizations, corporations, AI systems, and automated processes.
+
+VIGIL SYSTEMS, LLC — LIMITED LIABILITY CORPORATION
+Founder & Creator: Steven Gonzales
+steven.gonzales@vigilsysllc.com
+ALL RIGHTS RESERVED.`,
+      },
+    ];
+
+    for (const doc of legalDocs) {
+      await ctx.db.insert("documents", {
+        title: doc.title,
+        content: doc.content,
+        category: doc.category,
+        version: doc.version,
+        isPublished: true,
+        authorId: userId,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    return "seeded";
+  },
+});

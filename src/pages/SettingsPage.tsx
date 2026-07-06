@@ -27,6 +27,8 @@ const COLOR_SCHEMES: { id: ColorScheme; label: string; description: string; swat
   { id: "vigil-blue", label: "Steel Blue", description: "Navy precision", swatch: "oklch(0.65 0.12 230)" },
   { id: "vigil-red", label: "Combat Red", description: "Alert readiness", swatch: "oklch(0.58 0.2 25)" },
   { id: "vigil-slate", label: "Tactical Gray", description: "Stealth neutral", swatch: "oklch(0.6 0.02 260)" },
+  { id: "vigil-purple", label: "Royal Purple", description: "Sovereign command", swatch: "oklch(0.65 0.18 300)" },
+  { id: "vigil-ember", label: "Ember Fire", description: "Forged resilience", swatch: "oklch(0.68 0.19 45)" },
 ];
 
 export function SettingsPage() {

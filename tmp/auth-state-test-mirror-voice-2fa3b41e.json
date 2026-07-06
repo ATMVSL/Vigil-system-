@@ -1,0 +1,26 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:4173",
+      "localStorage": [
+        {
+          "name": "theme",
+          "value": "dark"
+        },
+        {
+          "name": "vigil-color-scheme",
+          "value": "vigil-green"
+        },
+        {
+          "name": "__convexAuthJWT_httpsboldcrane128convexcloud",
+          "value": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJqeDdhdG14MGY3Z2VycW05a2M1OXg5dGZheDhhMGM4bnxqaDdkMjM1NzB0Njh5cXR5czF5eXRidzFzbjhhMXJ0aiIsImlhdCI6MTc4MzM3MTUwNCwiaXNzIjoiaHR0cHM6Ly9ib2xkLWNyYW5lLTEyOC5jb252ZXguc2l0ZSIsImF1ZCI6ImNvbnZleCIsImV4cCI6MTc4MzM3NTEwNH0.dtS_TlzKTqE3hTNo_XOPYY5MZ9Rx3bmWS-l4Rha0IPtKOq3WISx9UTyVzyeoSVJU8VFTyhbLAMxXd6N6x80sYOQV95pVRvcUWZOsswPlvZ-HLD_bsI11ReAd3Yv-UcpL4q0iUk61SvdtEnPX5_6ifXnexSOblYUctWd4hyRpuqmhTkSybKZT73CMJ0qXfXaz-zY61B6bNlDIUT2mzVqhipGmlg_5Fuo4_0RRXLHO39xZTuiGarj2SYrsxMvjvOZGAztV6Dt02rmpUXhuCfwTc_v63RF9phc7b1WSQ8zeSNiI0yVegK_gCEbqdgxeFvaX3L_cQcKeQo6Heh5DqFbc0g"
+        },
+        {
+          "name": "__convexAuthRefreshToken_httpsboldcrane128convexcloud",
+          "value": "jd772z40878tnh7gt8xqfzcyan8a08qp|jh7d23570t68yqtys1yytbw1sn8a1rtj"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:4173",
+      "localStorage": [
+        {
+          "name": "theme",
+          "value": "dark"
+        },
+        {
+          "name": "__convexAuthJWT_httpsboldcrane128convexcloud",
+          "value": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJqeDdhdG14MGY3Z2VycW05a2M1OXg5dGZheDhhMGM4bnxqaDdhMGNzZHk3d3Exd2V6MnpqNXc1aDU1OThhMWVxYiIsImlhdCI6MTc4MzM2Mjk5NiwiaXNzIjoiaHR0cHM6Ly9ib2xkLWNyYW5lLTEyOC5jb252ZXguc2l0ZSIsImF1ZCI6ImNvbnZleCIsImV4cCI6MTc4MzM2NjU5Nn0.oM9JKKssyMqaWJNbu94nhWZtJz4vjftihnvz940FoeeQXS8V8Kn0dBaD-mytLDQrihafD6TAdMjiM6A5wkRR8r7PXf-ggeLuaAP_1OEhVeS8tZuV48WIujk-oFH4dj5XJHkaRNeJxPzCTFkglGJkmy0lyNG86GRs88ijAYytcdeTVxfpx8ybNB4TBNkwh5g9gUHV-tgwhFXBoQR_nccUz3R-WKMzKF2N9hmev7chNM3Ythv9sWRkPGZe3NxQ1a9YYX05PyL-chDLSawAMa8dKxUgCFKihM2u5Ucprek4LdvH1qIyaacZoqpZQE26yoUeyDgkRTdv8ZJpWOuIsHNTkw"
+        },
+        {
+          "name": "__convexAuthRefreshToken_httpsboldcrane128convexcloud",
+          "value": "jd70wq1ghjx9azn9adg5f6etrn8a1bxp|jh7a0csdy7wq1wez2zj5w5h5598a1eqb"
+        }
+      ]
+    }
+  ]
+}

@@ -52,7 +52,7 @@ export const mirrorChat = action({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4.1",
+          model: "gpt-5.4",
           messages,
           temperature: 0.75,
         }),
@@ -101,7 +101,7 @@ export const gradeTrainingResponse = action({
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-4.1", messages, max_tokens: 400, temperature: 0.5 }),
+        body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 400, temperature: 0.5 }),
       });
       if (!response.ok) return { score: 0, feedback: "Evaluation system error. Try again.", error: true };
       const data = await response.json();
@@ -139,7 +139,7 @@ export const evaluateSqlQuery = action({
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-4.1", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
+        body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
       });
       if (!response.ok) return { passed: false, feedback: "Evaluation error.", score: 0 };
       const data = await response.json();
@@ -179,7 +179,7 @@ export const gradeAssessment = action({
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-4.1", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
+        body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
       });
       if (!response.ok) return { correct: false, feedback: "Grading error.", score: 0 };
       const data = await response.json();

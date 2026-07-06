@@ -1,7 +1,33 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
-.env.local
+
+# Environment variables
 .env
-__pycache__/
-*.pyc
-.turbo/
+.env.local
+.env.*.local
+
+# Convex generated files
+convex/_generated/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+bun.lockb
+
+# Temp/test output
+tmp/
+test-results/
+playwright-report/

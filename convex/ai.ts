@@ -600,12 +600,12 @@ export const getColorScheme = query({
   args: {},
   handler: async ctx => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) return "vigil-green";
+    if (!userId) return "vigil-core";
     const profile = await ctx.db
       .query("userProfiles")
       .withIndex("by_user", q => q.eq("userId", userId))
       .first();
-    return profile?.colorScheme || "vigil-green";
+    return profile?.colorScheme || "vigil-core";
   },
 });
 

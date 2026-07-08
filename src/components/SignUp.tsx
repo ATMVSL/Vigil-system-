@@ -7,7 +7,10 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
 function isTestEmail(email: string): boolean {
-  return email.endsWith("@test.local");
+  return (
+    import.meta.env.VITE_IS_PREVIEW === "true" &&
+    email.endsWith("@test.local")
+  );
 }
 
 type Step = "signUp" | { email: string };

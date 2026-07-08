@@ -4,6 +4,7 @@ import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
 import { buildMirrorSystemPrompt } from "./mirrorPrompts";
 import { executeTool, MIRROR_TOOLS } from "./mirrorTools";
+import { verifyDownwardFlow } from "./twins";
 
 const http = httpRouter();
 auth.addHttpRoutes(http);
@@ -144,11 +145,13 @@ http.route({
           currentMessages.push(choice.message);
           for (const toolCall of choice.message.tool_calls) {
             const toolArgs = JSON.parse(toolCall.function.arguments || "{}");
-            // Only allow non-user-specific tools in streaming (no DB access)
+            // Tools allowed in streaming (no authenticated DB context)
             const allowedTools = [
               "get_current_awareness",
               "get_doctrine_reference",
               "web_search",
+              "get_dashboard_state",
+              "text_to_code",
             ];
             let toolResult: string;
             if (allowedTools.includes(toolCall.function.name)) {
@@ -203,8 +206,87 @@ http.route({
         });
       }
 
-      // Pipe OpenAI's SSE stream directly to the client
-      return new Response(openaiResponse.body, {
+      // ─── TWIN-VERIFIED STREAMING ───
+      // Intercept stream to collect full response for Twin verification.
+      // Tokens are forwarded in real-time; a verification event is appended at end.
+      const reader = openaiResponse.body?.getReader();
+      if (!reader) {
+        return new Response(
+          JSON.stringify({ error: "No stream body" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      const twinCogState = cognitiveState;
+      const twinCallsign = callsign;
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          let fullResponse = "";
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              // Forward chunk to client immediately
+              controller.enqueue(value);
+
+              // Accumulate text for Twin verification
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split("\n");
+              for (const line of lines) {
+                if (line.startsWith("data: ") && line !== "data: [DONE]") {
+                  try {
+                    const parsed = JSON.parse(line.slice(6));
+                    const token =
+                      parsed.choices?.[0]?.delta?.content || "";
+                    fullResponse += token;
+                  } catch {
+                    // Skip malformed chunks
+                  }
+                }
+              }
+            }
+
+            // ─── TWIN VERIFICATION AT END OF STREAM ───
+            if (fullResponse.length > 0) {
+              const verification = verifyDownwardFlow(
+                fullResponse,
+                twinCogState,
+                twinCallsign,
+              );
+              // Append verification result as a custom SSE event
+              const verifyEvent = `data: ${JSON.stringify({
+                vigil_twin_verification: {
+                  passed: verification.passed,
+                  complianceScore: verification.complianceScore,
+                  violations: verification.violations.length,
+                },
+              })}\n\n`;
+              controller.enqueue(encoder.encode(verifyEvent));
+
+              if (!verification.passed) {
+                console.warn(
+                  `Twin verification FAILED (score: ${verification.complianceScore}):`,
+                  verification.violations.map(
+                    (v: { detail: string }) => v.detail,
+                  ),
+                );
+              }
+            }
+          } catch (e) {
+            console.error("Stream twin verification error:", e);
+          } finally {
+            controller.close();
+          }
+        },
+      });
+
+      return new Response(stream, {
         headers: {
           ...corsHeaders,
           "Content-Type": "text/event-stream",

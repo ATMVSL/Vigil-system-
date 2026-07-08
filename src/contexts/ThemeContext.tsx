@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 type Theme = "light" | "dark";
 
 export type ColorScheme =
+  | "vigil-core"
   | "vigil-green"
   | "vigil-amber"
   | "vigil-blue"
@@ -56,6 +57,7 @@ export function ThemeProvider({
     if (
       stored &&
       [
+        "vigil-core",
         "vigil-green",
         "vigil-amber",
         "vigil-blue",
@@ -67,7 +69,7 @@ export function ThemeProvider({
     ) {
       return stored as ColorScheme;
     }
-    return "vigil-green";
+    return "vigil-core";
   });
 
   useEffect(() => {
@@ -85,7 +87,11 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = document.documentElement;
-    root.setAttribute("data-color-scheme", colorScheme);
+    if (colorScheme === "vigil-core") {
+      root.removeAttribute("data-color-scheme");
+    } else {
+      root.setAttribute("data-color-scheme", colorScheme);
+    }
     localStorage.setItem("vigil-color-scheme", colorScheme);
   }, [colorScheme]);
 

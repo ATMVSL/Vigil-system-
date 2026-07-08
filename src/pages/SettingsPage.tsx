@@ -46,6 +46,12 @@ const COLOR_SCHEMES: {
   swatch: string;
 }[] = [
   {
+    id: "vigil-core",
+    label: "VIGIL Core",
+    description: "Founder-defined",
+    swatch: "oklch(0.48 0.178 296)",
+  },
+  {
     id: "vigil-green",
     label: "OD Green",
     description: "Military standard",
@@ -131,7 +137,7 @@ export function SettingsPage() {
   if (
     backendColorScheme &&
     backendColorScheme !== colorScheme &&
-    backendColorScheme !== "vigil-green"
+    backendColorScheme !== "vigil-core"
   ) {
     setColorScheme(backendColorScheme as ColorScheme);
   }

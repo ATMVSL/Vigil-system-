@@ -1,5 +1,10 @@
-import { useConvexAuth } from "convex/react";
-import { Navigate, Outlet } from "react-router-dom";
+import { useConvexAuth, useQuery } from "convex/react";
+import { GraduationCap, Shield, ShieldAlert } from "lucide-react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { api } from "../../convex/_generated/api";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Progress } from "./ui/progress";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +17,15 @@ import {
   SidebarProvider,
 } from "./ui/sidebar";
 import { Skeleton } from "./ui/skeleton";
+
+// Pages that don't require Academy completion
+const UNGATED_PATHS = [
+  "/home",
+  "/academy",
+  "/settings",
+  "/documentation",
+  "/doctrine",
+];
 
 function AppSkeleton() {
   return (
@@ -63,8 +77,94 @@ function AppSkeleton() {
   );
 }
 
+function AccessDeniedGate({
+  reason,
+  approvalStatus,
+  coursesTotal,
+  coursesCompleted,
+}: {
+  reason: string;
+  approvalStatus?: string;
+  coursesTotal?: number;
+  coursesCompleted?: number;
+}) {
+  const isPending = approvalStatus === "pending";
+  const isDenied = approvalStatus === "denied";
+  const isAcademy = !isPending && !isDenied;
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="max-w-md w-full text-center space-y-6">
+        <div className="mx-auto size-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+          {isPending ? (
+            <Shield className="size-8 text-primary" />
+          ) : isDenied ? (
+            <ShieldAlert className="size-8 text-destructive" />
+          ) : (
+            <GraduationCap className="size-8 text-primary" />
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <h1 className="text-xl font-bold tracking-tight">
+            {isPending
+              ? "Awaiting Founder Approval"
+              : isDenied
+                ? "Access Denied"
+                : "Academy Required"}
+          </h1>
+          <p className="text-sm text-muted-foreground">{reason}</p>
+        </div>
+
+        {isAcademy &&
+          coursesTotal !== undefined &&
+          coursesCompleted !== undefined && (
+            <div className="space-y-2">
+              <Progress
+                value={(coursesCompleted / Math.max(coursesTotal, 1)) * 100}
+                className="h-2"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>
+                  {coursesCompleted} of {coursesTotal} courses completed
+                </span>
+                <Badge variant="outline" className="text-[10px]">
+                  {Math.round(
+                    (coursesCompleted / Math.max(coursesTotal, 1)) * 100,
+                  )}
+                  %
+                </Badge>
+              </div>
+              <Button asChild className="mt-4">
+                <a href="/academy">Continue Academy</a>
+              </Button>
+            </div>
+          )}
+
+        {isPending && (
+          <p className="text-xs text-muted-foreground">
+            The Founder has been notified. You will receive access once
+            approved.
+          </p>
+        )}
+
+        <div className="pt-4">
+          <Button variant="outline" size="sm" asChild>
+            <a href="/home">Return Home</a>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const location = useLocation();
+  const coreAccess = useQuery(
+    api.roles.getCoreAccessStatus,
+    isAuthenticated ? {} : "skip",
+  );
 
   if (isLoading) {
     return <AppSkeleton />;
@@ -72,6 +172,35 @@ export function ProtectedRoute() {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Check Academy gate for gated pages
+  const isUngated = UNGATED_PATHS.some(
+    p =>
+      location.pathname === p || location.pathname.startsWith(`${p}/`),
+  );
+
+  if (!isUngated && coreAccess && !coreAccess.allowed) {
+    return (
+      <AccessDeniedGate
+        reason={coreAccess.reason}
+        approvalStatus={
+          "approvalStatus" in coreAccess
+            ? (coreAccess.approvalStatus as string)
+            : undefined
+        }
+        coursesTotal={
+          "coursesTotal" in coreAccess
+            ? (coreAccess.coursesTotal as number)
+            : undefined
+        }
+        coursesCompleted={
+          "coursesCompleted" in coreAccess
+            ? (coreAccess.coursesCompleted as number)
+            : undefined
+        }
+      />
+    );
   }
 
   return <Outlet />;

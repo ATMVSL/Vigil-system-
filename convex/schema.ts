@@ -486,6 +486,86 @@ const schema = defineSchema({
     .index("by_user", ["userId"])
     .index("by_twin", ["twin"]),
 
+  // ─── REAL-TIME MESSAGES ─── Text interactions
+  realtimeMessages: defineTable({
+    userId: v.id("users"),
+    channelId: v.string(),
+    content: v.string(),
+    messageType: v.union(
+      v.literal("text"),
+      v.literal("system"),
+      v.literal("mirror_response"),
+      v.literal("video_event"),
+    ),
+    metadata: v.optional(v.string()),
+    readBy: v.array(v.id("users")),
+    createdAt: v.number(),
+  })
+    .index("by_channel", ["channelId"])
+    .index("by_user", ["userId"]),
+
+  // ─── REAL-TIME CHANNELS ─── Interaction channels
+  realtimeChannels: defineTable({
+    channelId: v.string(),
+    channelType: v.union(
+      v.literal("mirror_session"),
+      v.literal("direct"),
+      v.literal("group"),
+      v.literal("system"),
+    ),
+    participantIds: v.array(v.string()),
+    messageCount: v.number(),
+    lastMessageAt: v.number(),
+    createdAt: v.number(),
+  }).index("by_channelId", ["channelId"]),
+
+  // ─── VIDEO CALLS ─── WebRTC video/audio call state
+  videoCalls: defineTable({
+    initiatorId: v.id("users"),
+    targetId: v.id("users"),
+    callType: v.union(v.literal("video"), v.literal("audio")),
+    status: v.union(
+      v.literal("ringing"),
+      v.literal("connected"),
+      v.literal("ended"),
+      v.literal("declined"),
+      v.literal("missed"),
+    ),
+    startedAt: v.number(),
+    connectedAt: v.optional(v.number()),
+    endedAt: v.optional(v.number()),
+  })
+    .index("by_initiator", ["initiatorId"])
+    .index("by_target", ["targetId"]),
+
+  // ─── VIDEO SIGNALS ─── WebRTC signaling (SDP + ICE)
+  videoSignals: defineTable({
+    callId: v.id("videoCalls"),
+    senderId: v.id("users"),
+    signalType: v.union(
+      v.literal("offer"),
+      v.literal("answer"),
+      v.literal("ice_candidate"),
+    ),
+    payload: v.string(),
+    consumed: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_call", ["callId"]),
+
+  // ─── USER PRESENCE ─── Online status & sync
+  userPresence: defineTable({
+    userId: v.id("users"),
+    status: v.union(
+      v.literal("online"),
+      v.literal("away"),
+      v.literal("in_session"),
+      v.literal("in_call"),
+      v.literal("offline"),
+    ),
+    currentPage: v.optional(v.string()),
+    lastSeen: v.number(),
+  }).index("by_user", ["userId"]),
+
   // ─── ACTIVITY LOG ─── System-wide audit trail
   activityLog: defineTable({
     userId: v.id("users"),

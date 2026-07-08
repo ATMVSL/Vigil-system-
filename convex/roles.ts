@@ -7,10 +7,23 @@ import { mutation, query } from "./_generated/server";
 const FOUNDER_EMAILS = [
   "dragonleadera1@gmail.com",
   "steven.gonzales@vigilsysllc.com",
+  "azvsysllc@gmail.com",
+  "thatguy520az@gmail.com",
 ];
 function isFounderEmail(email?: string | null): boolean {
   if (!email) return false;
   return FOUNDER_EMAILS.includes(email.toLowerCase());
+}
+
+// Super admin emails — elevated access, still below Founder
+const SUPERADMIN_EMAILS = [
+  "breakitdowninside@gmail.com",
+  "plunaiii@yahoo.com",
+  "lany002@live.com",
+];
+function isSuperadminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return SUPERADMIN_EMAILS.includes(email.toLowerCase());
 }
 
 const ROLE_HIERARCHY = [
@@ -83,18 +96,27 @@ export const initProfile = mutation({
 
     if (existing) return existing._id;
 
-    // Check if this is the founder
+    // Check if this is the founder or pre-approved superadmin
     const user = await ctx.db.get(userId);
     const isFounder = isFounderEmail(user?.email);
+    const isSuperadmin = isSuperadminEmail(user?.email);
+
+    // Determine initial role and approval status
+    const initialRole = isFounder
+      ? "founder"
+      : isSuperadmin
+        ? "superadmin"
+        : "operator";
+    const initialApproval = isFounder || isSuperadmin ? "approved" : "pending";
 
     const profileId = await ctx.db.insert("userProfiles", {
       userId,
-      role: isFounder ? "founder" : "operator",
-      approvalStatus: isFounder ? "approved" : "pending",
+      role: initialRole,
+      approvalStatus: initialApproval,
       completedCourses: 0,
       totalCertifications: 0,
       certificationVerified: false,
-      promotedAt: isFounder ? Date.now() : undefined,
+      promotedAt: isFounder || isSuperadmin ? Date.now() : undefined,
       createdAt: Date.now(),
     });
 
@@ -102,14 +124,16 @@ export const initProfile = mutation({
       userId,
       action: isFounder
         ? "Founder profile initialized"
-        : "New applicant — pending approval",
+        : isSuperadmin
+          ? "Super admin profile initialized (pre-approved)"
+          : "New applicant — pending Founder approval",
       module: "system",
-      details: `Role: ${isFounder ? "FOUNDER" : "OPERATOR (PENDING)"}`,
+      details: `Role: ${initialRole.toUpperCase()}${initialApproval === "pending" ? " (PENDING)" : ""}`,
       createdAt: Date.now(),
     });
 
-    // Send email notification to Founder for new (non-founder) applicants
-    if (!isFounder && user?.email) {
+    // Send email notification to Founder for new applicants who need approval
+    if (!isFounder && !isSuperadmin && user?.email) {
       await ctx.scheduler.runAfter(
         0,
         internal.notifications.notifyFounderNewApplicant,
@@ -385,21 +409,120 @@ export const getMyApprovalStatus = query({
   },
 });
 
-// Fix any existing founder-email users who have wrong roles
+// ─── ACADEMY COMPLETION GATE ───
+// Core features (Mirror, Evidence, Doctrine authoring) require Academy completion
+// Founder and Superadmin bypass this gate. Everyone else must complete all courses.
+export const getCoreAccessStatus = query({
+  args: {},
+  handler: async ctx => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return { allowed: false, reason: "Not authenticated" };
+
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .first();
+
+    if (!profile) return { allowed: false, reason: "Profile not initialized" };
+
+    // Check approval status first — nobody gets in without Founder approval
+    if (
+      profile.approvalStatus === "pending" ||
+      profile.approvalStatus === "denied"
+    ) {
+      return {
+        allowed: false,
+        reason:
+          profile.approvalStatus === "pending"
+            ? "Awaiting Founder approval"
+            : "Access denied by Founder",
+        approvalStatus: profile.approvalStatus,
+      };
+    }
+
+    // Founder and Superadmin bypass Academy gate
+    if (profile.role === "founder" || profile.role === "superadmin") {
+      return {
+        allowed: true,
+        reason: `${profile.role === "founder" ? "Founder" : "Superadmin"} — full access`,
+        role: profile.role,
+        academyComplete: true,
+      };
+    }
+
+    // Everyone else must complete all Academy courses
+    const allCourses = await ctx.db.query("courses").collect();
+    const publishedCourses = allCourses.filter(c => c.isPublished);
+
+    if (publishedCourses.length === 0) {
+      return {
+        allowed: false,
+        reason: "Academy courses not yet available",
+        coursesTotal: 0,
+        coursesCompleted: 0,
+      };
+    }
+
+    const enrollments = await ctx.db
+      .query("enrollments")
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .collect();
+
+    const completedCourseIds = new Set(
+      enrollments
+        .filter(e => e.status === "completed" || e.status === "certified")
+        .map(e => e.courseId.toString()),
+    );
+
+    const coursesTotal = publishedCourses.length;
+    const coursesCompleted = publishedCourses.filter(c =>
+      completedCourseIds.has(c._id.toString()),
+    ).length;
+    const academyComplete = coursesCompleted >= coursesTotal;
+
+    return {
+      allowed: academyComplete,
+      reason: academyComplete
+        ? "Academy complete — core access granted"
+        : `Complete all Academy courses first (${coursesCompleted}/${coursesTotal})`,
+      role: profile.role,
+      academyComplete,
+      coursesTotal,
+      coursesCompleted,
+    };
+  },
+});
+
+// Fix any existing founder/superadmin-email users who have wrong roles
 export const fixFounderAccess = mutation({
   args: {},
   handler: async ctx => {
     const users = await ctx.db.query("users").collect();
     let fixed = 0;
     for (const user of users) {
+      const profile = await ctx.db
+        .query("userProfiles")
+        .withIndex("by_user", (q: any) => q.eq("userId", user._id))
+        .first();
+
       if (isFounderEmail(user.email)) {
-        const profile = await ctx.db
-          .query("userProfiles")
-          .withIndex("by_user", (q: any) => q.eq("userId", user._id))
-          .first();
         if (profile && profile.role !== "founder") {
           await ctx.db.patch(profile._id, {
             role: "founder",
+            approvalStatus: "approved",
+            promotedAt: Date.now(),
+          });
+          fixed++;
+        }
+      } else if (isSuperadminEmail(user.email)) {
+        if (
+          profile &&
+          profile.role !== "superadmin" &&
+          profile.role !== "founder"
+        ) {
+          await ctx.db.patch(profile._id, {
+            role: "superadmin",
+            approvalStatus: "approved",
             promotedAt: Date.now(),
           });
           fixed++;

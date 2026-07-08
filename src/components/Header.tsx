@@ -32,7 +32,9 @@ function HeaderView({
               <Eye className="size-5 text-primary" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-widest text-sm">{APP_NAME}</span>
+              <span className="font-bold tracking-widest text-sm">
+                {APP_NAME}
+              </span>
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">
                 Mirror Systems
               </span>

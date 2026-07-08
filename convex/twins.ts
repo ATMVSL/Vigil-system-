@@ -1,8 +1,7 @@
-import { v } from "convex/values";
-import { action, internalMutation, mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { v } from "convex/values";
+import { action, internalMutation, query } from "./_generated/server";
 import { VIGIL_CORE_DOCTRINE } from "./mirrorPrompts";
-import { internal } from "./_generated/api";
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -40,7 +39,7 @@ const FORBIDDEN_PATTERNS = [
 
 // ─── REQUIRED PRINCIPLES ───
 // These concepts must be implicitly present in Mirror behavior.
-const DOCTRINE_ANCHORS = [
+const _DOCTRINE_ANCHORS = [
   "sovereignty",
   "continuity",
   "presence",
@@ -50,10 +49,20 @@ const DOCTRINE_ANCHORS = [
 
 // ─── COGNITIVE STATE BAND VALIDATION ───
 // Verify the Mirror's response tone matches the user's cognitive state.
-const STATE_BAND_EXPECTATIONS: Record<string, { tone: string; markers: string[] }> = {
+const STATE_BAND_EXPECTATIONS: Record<
+  string,
+  { tone: string; markers: string[] }
+> = {
   stable: {
     tone: "reinforce",
-    markers: ["forward", "strength", "build", "growth", "progress", "capability"],
+    markers: [
+      "forward",
+      "strength",
+      "build",
+      "growth",
+      "progress",
+      "capability",
+    ],
   },
   strain: {
     tone: "stabilise",
@@ -81,7 +90,7 @@ const STATE_BAND_EXPECTATIONS: Record<string, { tone: string; markers: string[] 
 export function verifyDownwardFlow(
   response: string,
   cognitiveState: string,
-  callsign: string
+  callsign: string,
 ): TwinVerification {
   const violations: TwinViolation[] = [];
   const responseLower = response.toLowerCase();
@@ -93,11 +102,16 @@ export function verifyDownwardFlow(
         type: "forbidden_pattern",
         severity: "high",
         detail: `Response contains forbidden pattern: "${pattern}"`,
-        axiom: pattern.includes("feel") || pattern.includes("explore") || pattern.includes("hearing")
-          ? "no_probing"
-          : pattern.includes("should") || pattern.includes("accept") || pattern.includes("really mean")
-            ? "sovereignty"
-            : "architecture_integrity",
+        axiom:
+          pattern.includes("feel") ||
+          pattern.includes("explore") ||
+          pattern.includes("hearing")
+            ? "no_probing"
+            : pattern.includes("should") ||
+                pattern.includes("accept") ||
+                pattern.includes("really mean")
+              ? "sovereignty"
+              : "architecture_integrity",
       });
     }
   }
@@ -125,8 +139,8 @@ export function verifyDownwardFlow(
   // Check 3: State band tone alignment
   const expectations = STATE_BAND_EXPECTATIONS[cognitiveState];
   if (expectations) {
-    const markerHits = expectations.markers.filter((m) =>
-      responseLower.includes(m)
+    const markerHits = expectations.markers.filter(m =>
+      responseLower.includes(m),
     ).length;
     if (markerHits === 0 && response.length > 100) {
       violations.push({
@@ -157,12 +171,14 @@ export function verifyDownwardFlow(
   };
   const totalPenalty = violations.reduce(
     (sum, v) => sum + (severityWeights[v.severity] || 5),
-    0
+    0,
   );
   const complianceScore = Math.max(0, 100 - totalPenalty);
 
   return {
-    passed: violations.filter((v) => v.severity === "critical" || v.severity === "high").length === 0,
+    passed:
+      violations.filter(v => v.severity === "critical" || v.severity === "high")
+        .length === 0,
     complianceScore,
     violations,
     twin: "alpha",
@@ -183,7 +199,7 @@ export function verifyDownwardFlow(
 export function scrambleIdentity(
   content: string,
   callsign: string,
-  userName?: string
+  userName?: string,
 ): ScrambledIntel {
   let scrambled = content;
 
@@ -198,7 +214,10 @@ export function scrambleIdentity(
     // Also try first name
     const firstName = userName.split(" ")[0];
     if (firstName && firstName.length > 2) {
-      const firstNameRegex = new RegExp(`\\b${escapeRegex(firstName)}\\b`, "gi");
+      const firstNameRegex = new RegExp(
+        `\\b${escapeRegex(firstName)}\\b`,
+        "gi",
+      );
       scrambled = scrambled.replace(firstNameRegex, "[USER]");
     }
   }
@@ -207,19 +226,19 @@ export function scrambleIdentity(
   // Email addresses
   scrambled = scrambled.replace(
     /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
-    "[EMAIL]"
+    "[EMAIL]",
   );
   // Phone numbers (US formats)
   scrambled = scrambled.replace(
     /(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g,
-    "[PHONE]"
+    "[PHONE]",
   );
   // SSN patterns
   scrambled = scrambled.replace(/\b\d{3}-\d{2}-\d{4}\b/g, "[REDACTED]");
   // Street addresses (basic pattern)
   scrambled = scrambled.replace(
     /\b\d{1,5}\s+[A-Z][a-z]+\s+(St|Street|Ave|Avenue|Rd|Road|Blvd|Boulevard|Dr|Drive|Ln|Lane|Ct|Court)\b/gi,
-    "[ADDRESS]"
+    "[ADDRESS]",
   );
 
   const isFullyScrambled =
@@ -241,7 +260,7 @@ export function scrambleIdentity(
 export function verifyUpwardIntel(
   intel: ScrambledIntel,
   originalCallsign: string,
-  originalUserName?: string
+  originalUserName?: string,
 ): TwinVerification {
   const violations: TwinViolation[] = [];
   const contentLower = intel.content.toLowerCase();
@@ -267,7 +286,10 @@ export function verifyUpwardIntel(
   }
 
   // Check 3: User name should not appear
-  if (originalUserName && contentLower.includes(originalUserName.toLowerCase())) {
+  if (
+    originalUserName &&
+    contentLower.includes(originalUserName.toLowerCase())
+  ) {
     violations.push({
       type: "identity_leak",
       severity: "critical",
@@ -304,12 +326,12 @@ export function verifyUpwardIntel(
   };
   const totalPenalty = violations.reduce(
     (sum, v) => sum + (severityWeights[v.severity] || 5),
-    0
+    0,
   );
   const complianceScore = Math.max(0, 100 - totalPenalty);
 
   return {
-    passed: violations.filter((v) => v.severity === "critical").length === 0,
+    passed: violations.filter(v => v.severity === "critical").length === 0,
     complianceScore,
     violations,
     twin: "beta",
@@ -364,7 +386,7 @@ export const recordVerification = internalMutation({
       if (mirror) {
         // Degrade compliance score (weighted average)
         const newCompliance = Math.round(
-          mirror.doctrineCompliance * 0.8 + args.complianceScore * 0.2
+          mirror.doctrineCompliance * 0.8 + args.complianceScore * 0.2,
         );
         await ctx.db.patch(args.mirrorId, {
           doctrineCompliance: newCompliance,
@@ -389,7 +411,7 @@ export const deepVerify = action({
     const deterministicResult = verifyDownwardFlow(
       args.response,
       args.cognitiveState,
-      args.callsign
+      args.callsign,
     );
 
     // If deterministic checks found critical violations, no need for AI check
@@ -442,18 +464,20 @@ Respond in JSON:
           },
           body: JSON.stringify({
             model: "gpt-5.4",
-            messages: [
-              { role: "system", content: judgePrompt },
-            ],
+            messages: [{ role: "system", content: judgePrompt }],
             max_tokens: 300,
             temperature: 0.2,
             response_format: { type: "json_object" },
           }),
-        }
+        },
       );
 
       if (!response.ok) {
-        console.error("Twins deep verify error:", response.status, await response.text());
+        console.error(
+          "Twins deep verify error:",
+          response.status,
+          await response.text(),
+        );
         return deterministicResult;
       }
 
@@ -467,7 +491,7 @@ Respond in JSON:
             severity: "medium" as const,
             detail: issue,
             axiom: "architecture_integrity" as const,
-          })
+          }),
         );
 
         const allViolations = [
@@ -475,7 +499,7 @@ Respond in JSON:
           ...aiViolations,
         ];
         const combinedScore = Math.round(
-          (deterministicResult.complianceScore + (judge.score || 100)) / 2
+          (deterministicResult.complianceScore + (judge.score || 100)) / 2,
         );
 
         return {
@@ -510,7 +534,7 @@ export const getVerificationHistory = query({
     if (args.mirrorId) {
       return await ctx.db
         .query("twinVerifications")
-        .withIndex("by_mirror", (q) => q.eq("mirrorId", args.mirrorId!))
+        .withIndex("by_mirror", q => q.eq("mirrorId", args.mirrorId!))
         .order("desc")
         .take(args.limit || 20);
     }
@@ -518,13 +542,13 @@ export const getVerificationHistory = query({
     // Get current user's mirror
     const mirror = await ctx.db
       .query("mirrors")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
     if (!mirror) return [];
 
     return await ctx.db
       .query("twinVerifications")
-      .withIndex("by_mirror", (q) => q.eq("mirrorId", mirror._id))
+      .withIndex("by_mirror", q => q.eq("mirrorId", mirror._id))
       .order("desc")
       .take(args.limit || 20);
   },
@@ -533,7 +557,7 @@ export const getVerificationHistory = query({
 // ─── Get Twin system health metrics ───
 export const getSystemHealth = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
 
@@ -555,18 +579,18 @@ export const getSystemHealth = query({
       };
     }
 
-    const passed = recentVerifications.filter((v) => v.passed).length;
+    const passed = recentVerifications.filter(v => v.passed).length;
     const avgScore =
       recentVerifications.reduce((sum, v) => sum + v.complianceScore, 0) /
       recentVerifications.length;
     const recentFailures = recentVerifications
       .slice(0, 10)
-      .filter((v) => !v.passed).length;
+      .filter(v => !v.passed).length;
     const alphaChecks = recentVerifications.filter(
-      (v) => v.twin === "alpha"
+      v => v.twin === "alpha",
     ).length;
     const betaChecks = recentVerifications.filter(
-      (v) => v.twin === "beta"
+      v => v.twin === "beta",
     ).length;
 
     // Determine system status

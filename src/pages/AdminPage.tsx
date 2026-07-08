@@ -54,10 +54,15 @@ export function AdminPage() {
   const health = useQuery(api.admin.getSystemHealth);
   const myProfile = useQuery(api.roles.getMyProfile);
   const setRole = useMutation(api.roles.setUserRole);
-  const canManageRoles = myProfile?.role === "founder" || myProfile?.role === "superadmin";
+  const canManageRoles =
+    myProfile?.role === "founder" || myProfile?.role === "superadmin";
 
   if (users === undefined) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading admin...</div>;
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        Loading admin...
+      </div>
+    );
   }
 
   return (
@@ -75,11 +80,13 @@ export function AdminPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className={`rounded-md p-2 ${
-                  health.systemStatus === "operational"
-                    ? "bg-success/10"
-                    : "bg-destructive/10"
-                }`}>
+                <div
+                  className={`rounded-md p-2 ${
+                    health.systemStatus === "operational"
+                      ? "bg-success/10"
+                      : "bg-destructive/10"
+                  }`}
+                >
                   {health.systemStatus === "operational" ? (
                     <CheckCircle2 className="size-5 text-success" />
                   ) : (
@@ -87,7 +94,9 @@ export function AdminPage() {
                   )}
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">System</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                    System
+                  </p>
                   <p className="font-bold uppercase text-sm">
                     {health.systemStatus}
                   </p>
@@ -102,8 +111,12 @@ export function AdminPage() {
                   <Shield className="size-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Compliance</p>
-                  <p className="font-bold text-lg">{health.avgDoctrineCompliance}%</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Compliance
+                  </p>
+                  <p className="font-bold text-lg">
+                    {health.avgDoctrineCompliance}%
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -115,7 +128,9 @@ export function AdminPage() {
                   <Eye className="size-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Mirrors</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Mirrors
+                  </p>
                   <p className="font-bold text-lg">{health.totalMirrors}</p>
                   <p className="text-[10px] text-muted-foreground">
                     {health.baselineEstablished} baseline established
@@ -131,7 +146,9 @@ export function AdminPage() {
                   <Users className="size-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Operators</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Operators
+                  </p>
                   <p className="font-bold text-lg">{users.length}</p>
                 </div>
               </div>
@@ -147,24 +164,35 @@ export function AdminPage() {
             <CardTitle className="text-sm font-semibold uppercase tracking-wider">
               Cognitive State Distribution
             </CardTitle>
-            <CardDescription>Current state band across all active mirrors</CardDescription>
+            <CardDescription>
+              Current state band across all active mirrors
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-4 gap-3">
-              {(["stable", "strain", "drift", "critical"] as const).map((state) => {
-                const count = health.stateDistribution[state] || 0;
-                const total = health.totalMirrors;
-                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                return (
-                  <div key={state} className="p-3 rounded-md border border-border/50 text-center">
-                    <p className={`text-xs font-bold uppercase tracking-wider ${cognitiveStateColor[state]}`}>
-                      {state}
-                    </p>
-                    <p className="text-2xl font-bold mt-1">{count}</p>
-                    <p className="text-[10px] text-muted-foreground">{pct}%</p>
-                  </div>
-                );
-              })}
+              {(["stable", "strain", "drift", "critical"] as const).map(
+                state => {
+                  const count = health.stateDistribution[state] || 0;
+                  const total = health.totalMirrors;
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  return (
+                    <div
+                      key={state}
+                      className="p-3 rounded-md border border-border/50 text-center"
+                    >
+                      <p
+                        className={`text-xs font-bold uppercase tracking-wider ${cognitiveStateColor[state]}`}
+                      >
+                        {state}
+                      </p>
+                      <p className="text-2xl font-bold mt-1">{count}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {pct}%
+                      </p>
+                    </div>
+                  );
+                },
+              )}
             </div>
           </CardContent>
         </Card>
@@ -182,22 +210,36 @@ export function AdminPage() {
           {users.length === 0 ? (
             <div className="py-12 text-center">
               <Users className="size-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">No operators registered yet.</p>
+              <p className="text-sm text-muted-foreground">
+                No operators registered yet.
+              </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs uppercase tracking-wider">Operator</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Email</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Role</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Courses</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">State Band</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Callsign</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Operator
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Email
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Role
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Courses
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    State Band
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Callsign
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {users.map(user => (
                   <TableRow key={user._id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -206,7 +248,9 @@ export function AdminPage() {
                             {user.name?.charAt(0).toUpperCase() || "U"}
                           </span>
                         </div>
-                        <span className="font-medium text-sm">{user.name || "Unknown"}</span>
+                        <span className="font-medium text-sm">
+                          {user.name || "Unknown"}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -216,10 +260,14 @@ export function AdminPage() {
                       {canManageRoles && user.role !== "founder" ? (
                         <Select
                           value={user.role}
-                          onValueChange={(val) =>
+                          onValueChange={val =>
                             setRole({
                               targetUserId: user._id,
-                              role: val as "operator" | "certified" | "admin" | "superadmin",
+                              role: val as
+                                | "operator"
+                                | "certified"
+                                | "admin"
+                                | "superadmin",
                             })
                           }
                         >
@@ -230,12 +278,19 @@ export function AdminPage() {
                             <SelectItem value="operator">Operator</SelectItem>
                             <SelectItem value="certified">Certified</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="superadmin">Superadmin</SelectItem>
+                            <SelectItem value="superadmin">
+                              Superadmin
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge variant="outline" className={`text-[10px] uppercase ${roleColors[user.role] || ""}`}>
-                          {user.role === "founder" && <Star className="size-3 mr-1" />}
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] uppercase ${roleColors[user.role] || ""}`}
+                        >
+                          {user.role === "founder" && (
+                            <Star className="size-3 mr-1" />
+                          )}
                           {user.role}
                         </Badge>
                       )}
@@ -251,7 +306,10 @@ export function AdminPage() {
                     </TableCell>
                     <TableCell>
                       {user.cognitiveState ? (
-                        <Badge variant="outline" className={`text-[10px] uppercase ${cognitiveStateColor[user.cognitiveState]}`}>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] uppercase ${cognitiveStateColor[user.cognitiveState]}`}
+                        >
                           {user.cognitiveState}
                         </Badge>
                       ) : (

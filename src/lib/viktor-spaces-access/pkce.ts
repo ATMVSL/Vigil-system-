@@ -56,9 +56,11 @@ export function writePkceCookie(params: {
       targetPath: params.targetPath ?? "/",
     }),
   );
+  // biome-ignore lint/suspicious/noDocumentCookie: PKCE requires direct cookie access for secure auth flow
   document.cookie = pkceCookieAttributes(value, params.maxAgeSeconds ?? 600);
 }
 
 export function clearPkceCookie(): void {
+  // biome-ignore lint/suspicious/noDocumentCookie: PKCE requires direct cookie access for secure auth flow
   document.cookie = pkceCookieAttributes("", 0);
 }

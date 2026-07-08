@@ -1,11 +1,5 @@
 import { useMutation, useQuery } from "convex/react";
-import {
-  MessageSquare,
-  Pin,
-  Plus,
-  Send,
-  Users,
-} from "lucide-react";
+import { MessageSquare, Pin, Plus, Send, Users } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,15 +50,23 @@ const categoryColors: Record<string, string> = {
 
 export function CommunityPage() {
   const [filter, setFilter] = useState<string>("");
-  const [selectedPostId, setSelectedPostId] = useState<Id<"communityPosts"> | null>(null);
+  const [selectedPostId, setSelectedPostId] =
+    useState<Id<"communityPosts"> | null>(null);
   const [newPostOpen, setNewPostOpen] = useState(false);
-  const [newPost, setNewPost] = useState({ title: "", content: "", category: "general" });
+  const [newPost, setNewPost] = useState({
+    title: "",
+    content: "",
+    category: "general",
+  });
   const [replyContent, setReplyContent] = useState("");
 
-  const posts = useQuery(api.community.listPosts, filter ? { category: filter } : {});
+  const posts = useQuery(
+    api.community.listPosts,
+    filter ? { category: filter } : {},
+  );
   const selectedPost = useQuery(
     api.community.getPost,
-    selectedPostId ? { postId: selectedPostId } : "skip"
+    selectedPostId ? { postId: selectedPostId } : "skip",
   );
   const createPost = useMutation(api.community.createPost);
   const createReply = useMutation(api.community.createReply);
@@ -110,17 +112,26 @@ export function CommunityPage() {
                 <Label>Title</Label>
                 <Input
                   value={newPost.title}
-                  onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                  onChange={e =>
+                    setNewPost({ ...newPost, title: e.target.value })
+                  }
                   placeholder="Post title..."
                 />
               </div>
               <div>
                 <Label>Category</Label>
-                <Select value={newPost.category} onValueChange={(v) => setNewPost({ ...newPost, category: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={newPost.category}
+                  onValueChange={v => setNewPost({ ...newPost, category: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {Object.entries(categoryLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                      <SelectItem key={k} value={k}>
+                        {v}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -129,12 +140,17 @@ export function CommunityPage() {
                 <Label>Content</Label>
                 <Textarea
                   value={newPost.content}
-                  onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                  onChange={e =>
+                    setNewPost({ ...newPost, content: e.target.value })
+                  }
                   placeholder="Share your thoughts..."
                   rows={4}
                 />
               </div>
-              <Button onClick={handleCreatePost} disabled={!newPost.title || !newPost.content}>
+              <Button
+                onClick={handleCreatePost}
+                disabled={!newPost.title || !newPost.content}
+              >
                 Post
               </Button>
             </div>
@@ -169,16 +185,20 @@ export function CommunityPage() {
         {/* Posts List */}
         <div className="lg:col-span-2 space-y-3">
           {posts === undefined ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12 text-muted-foreground">
+              Loading...
+            </div>
           ) : posts.length === 0 ? (
             <Card className="vigil-border">
               <CardContent className="py-12 text-center">
                 <Users className="size-12 mx-auto text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground">No posts yet. Start a conversation.</p>
+                <p className="text-muted-foreground">
+                  No posts yet. Start a conversation.
+                </p>
               </CardContent>
             </Card>
           ) : (
-            posts.map((post) => (
+            posts.map(post => (
               <Card
                 key={post._id}
                 className={`vigil-border cursor-pointer transition-all hover:border-primary/30 ${selectedPostId === post._id ? "border-primary/50 bg-primary/5" : ""}`}
@@ -188,13 +208,24 @@ export function CommunityPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        {post.isPinned && <Pin className="size-3 text-chart-4" />}
-                        <h3 className="font-medium text-sm truncate">{post.title}</h3>
+                        {post.isPinned && (
+                          <Pin className="size-3 text-chart-4" />
+                        )}
+                        <h3 className="font-medium text-sm truncate">
+                          {post.title}
+                        </h3>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{post.content}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {post.content}
+                      </p>
                       <div className="flex items-center gap-3 mt-2">
-                        <span className="text-[10px] text-muted-foreground">{post.userName}</span>
-                        <Badge variant="outline" className={`text-[9px] ${categoryColors[post.category]}`}>
+                        <span className="text-[10px] text-muted-foreground">
+                          {post.userName}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={`text-[9px] ${categoryColors[post.category]}`}
+                        >
                           {categoryLabels[post.category]}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -215,43 +246,63 @@ export function CommunityPage() {
             <Card className="vigil-border sticky top-4">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <Badge variant="outline" className={`text-[9px] ${categoryColors[selectedPost.category]}`}>
+                  <Badge
+                    variant="outline"
+                    className={`text-[9px] ${categoryColors[selectedPost.category]}`}
+                  >
                     {categoryLabels[selectedPost.category]}
                   </Badge>
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => togglePin({ postId: selectedPost._id })}>
-                    <Pin className="size-3 mr-1" /> {selectedPost.isPinned ? "Unpin" : "Pin"}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-[10px]"
+                    onClick={() => togglePin({ postId: selectedPost._id })}
+                  >
+                    <Pin className="size-3 mr-1" />{" "}
+                    {selectedPost.isPinned ? "Unpin" : "Pin"}
                   </Button>
                 </div>
-                <CardTitle className="text-base">{selectedPost.title}</CardTitle>
+                <CardTitle className="text-base">
+                  {selectedPost.title}
+                </CardTitle>
                 <CardDescription className="text-xs">
-                  by {selectedPost.userName} · {new Date(selectedPost.createdAt).toLocaleDateString()}
+                  by {selectedPost.userName} ·{" "}
+                  {new Date(selectedPost.createdAt).toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm whitespace-pre-wrap">{selectedPost.content}</p>
+                <p className="text-sm whitespace-pre-wrap">
+                  {selectedPost.content}
+                </p>
 
                 {/* Replies */}
                 <div className="border-t border-border/30 pt-3 space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Replies ({selectedPost.replies.length})
                   </p>
-                  {selectedPost.replies.map((reply) => (
+                  {selectedPost.replies.map(reply => (
                     <div key={reply._id} className="bg-muted/30 rounded-md p-3">
                       <p className="text-xs">{reply.content}</p>
                       <p className="text-[10px] text-muted-foreground mt-1">
-                        {reply.userName} · {new Date(reply.createdAt).toLocaleDateString()}
+                        {reply.userName} ·{" "}
+                        {new Date(reply.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   ))}
                   <div className="flex gap-2">
                     <Input
                       value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
+                      onChange={e => setReplyContent(e.target.value)}
                       placeholder="Write a reply..."
                       className="text-xs h-8"
-                      onKeyDown={(e) => e.key === "Enter" && handleReply()}
+                      onKeyDown={e => e.key === "Enter" && handleReply()}
                     />
-                    <Button size="sm" className="h-8" onClick={handleReply} disabled={!replyContent.trim()}>
+                    <Button
+                      size="sm"
+                      className="h-8"
+                      onClick={handleReply}
+                      disabled={!replyContent.trim()}
+                    >
                       <Send className="size-3" />
                     </Button>
                   </div>
@@ -262,7 +313,9 @@ export function CommunityPage() {
             <Card className="vigil-border">
               <CardContent className="py-12 text-center">
                 <MessageSquare className="size-8 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-xs text-muted-foreground">Select a post to view details and replies.</p>
+                <p className="text-xs text-muted-foreground">
+                  Select a post to view details and replies.
+                </p>
               </CardContent>
             </Card>
           )}

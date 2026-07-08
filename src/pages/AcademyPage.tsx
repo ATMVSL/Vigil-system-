@@ -12,12 +12,12 @@ import {
   FileText,
   GraduationCap,
   HelpCircle,
+  RefreshCw,
   Server,
   Shield,
+  Square,
   Star,
   Users,
-  RefreshCw,
-  Square,
   Volume2,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -82,7 +82,10 @@ interface QuizQuestion {
   section?: string;
 }
 
-function parseAssessmentContent(content: string): { intro: string; questions: QuizQuestion[] } {
+function parseAssessmentContent(content: string): {
+  intro: string;
+  questions: QuizQuestion[];
+} {
   const lines = content.split("\n");
   const questions: QuizQuestion[] = [];
   let intro = "";
@@ -98,12 +101,12 @@ function parseAssessmentContent(content: string): { intro: string; questions: Qu
       i++;
       // Skip next line if it's a description
       if (i < lines.length && !lines[i].trim().startsWith("1.")) {
-        currentSection += " — " + lines[i].trim();
+        currentSection += ` — ${lines[i].trim()}`;
         i++;
       }
       continue;
     }
-    intro += line + "\n";
+    intro += `${line}\n`;
     i++;
   }
 
@@ -113,8 +116,8 @@ function parseAssessmentContent(content: string): { intro: string; questions: Qu
     if (line.startsWith("SECTION") || line.startsWith("PART")) {
       currentSection = line;
       i++;
-      if (i < lines.length && !(/^\d+\./.test(lines[i].trim()))) {
-        currentSection += " — " + lines[i].trim();
+      if (i < lines.length && !/^\d+\./.test(lines[i].trim())) {
+        currentSection += ` — ${lines[i].trim()}`;
         i++;
       }
       continue;
@@ -131,7 +134,13 @@ function parseAssessmentContent(content: string): { intro: string; questions: Qu
           answer = nextLine.replace(/^[→\->]+\s*/, "").trim();
           i++;
           break;
-        } else if (nextLine === "" || /^\d+\./.test(nextLine) || nextLine.startsWith("SECTION") || nextLine.startsWith("PART") || nextLine.startsWith("Review")) {
+        } else if (
+          nextLine === "" ||
+          /^\d+\./.test(nextLine) ||
+          nextLine.startsWith("SECTION") ||
+          nextLine.startsWith("PART") ||
+          nextLine.startsWith("Review")
+        ) {
           break;
         } else {
           // Additional context for the question
@@ -139,7 +148,11 @@ function parseAssessmentContent(content: string): { intro: string; questions: Qu
         }
       }
       if (answer) {
-        questions.push({ question: questionText, correctAnswer: answer, section: currentSection });
+        questions.push({
+          question: questionText,
+          correctAnswer: answer,
+          section: currentSection,
+        });
       }
     } else {
       i++;
@@ -168,8 +181,15 @@ function LessonVoiceButton({ text }: { text: string }) {
     try {
       const voice = voicePreference === "male" ? "onyx" : "nova";
       // Clean text for TTS — remove formatting chars
-      const cleaned = text.replace(/[•✗✓→]/g, "").replace(/\n+/g, ". ").replace(/\s+/g, " ").trim();
-      const result = await generateSpeech({ text: cleaned, voice: voice as "onyx" });
+      const cleaned = text
+        .replace(/[•✗✓→]/g, "")
+        .replace(/\n+/g, ". ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const result = await generateSpeech({
+        text: cleaned,
+        voice: voice as "onyx",
+      });
       if (result.audio) {
         const audio = new Audio(`data:audio/mp3;base64,${result.audio}`);
         audioRef.current = audio;
@@ -188,7 +208,13 @@ function LessonVoiceButton({ text }: { text: string }) {
   };
 
   return (
-    <Button variant="outline" size="sm" className="gap-2 text-xs shrink-0" onClick={handlePlay} disabled={loading}>
+    <Button
+      variant="outline"
+      size="sm"
+      className="gap-2 text-xs shrink-0"
+      onClick={handlePlay}
+      disabled={loading}
+    >
       {loading ? (
         <RefreshCw className="size-3 animate-spin" />
       ) : playing ? (
@@ -205,22 +231,29 @@ function AssessmentQuiz({ content }: { content: string }) {
   const { intro, questions } = parseAssessmentContent(content);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
-  const [aiFeedback, setAiFeedback] = useState<Record<number, { correct: boolean; feedback: string; correctAnswer?: string }>>({});
+  const [aiFeedback, setAiFeedback] = useState<
+    Record<
+      number,
+      { correct: boolean; feedback: string; correctAnswer?: string }
+    >
+  >({});
   const [gradingIdx, setGradingIdx] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
   const gradeAssessment = useAction(api.ai.gradeAssessment);
 
   const totalRevealed = Object.keys(revealed).length;
-  const totalCorrect = Object.entries(aiFeedback).filter(([, fb]) => fb.correct).length;
+  const totalCorrect = Object.entries(aiFeedback).filter(
+    ([, fb]) => fb.correct,
+  ).length;
 
   const handleGrade = async (idx: number) => {
     const q = questions[idx];
     const answer = userAnswers[idx]?.trim();
     if (!q || !answer) return;
-    
+
     setGradingIdx(idx);
     setRevealed(prev => ({ ...prev, [idx]: true }));
-    
+
     try {
       const result = await gradeAssessment({
         question: q.question,
@@ -237,12 +270,16 @@ function AssessmentQuiz({ content }: { content: string }) {
       }));
     } catch {
       // Fallback to simple matching
-      const isCorrect = q.correctAnswer.toLowerCase().includes(answer.toLowerCase()) && answer.length > 2;
+      const isCorrect =
+        q.correctAnswer.toLowerCase().includes(answer.toLowerCase()) &&
+        answer.length > 2;
       setAiFeedback(prev => ({
         ...prev,
         [idx]: {
           correct: isCorrect,
-          feedback: isCorrect ? "Correct!" : "Review the expected answer below.",
+          feedback: isCorrect
+            ? "Correct!"
+            : "Review the expected answer below.",
           correctAnswer: q.correctAnswer,
         },
       }));
@@ -257,7 +294,11 @@ function AssessmentQuiz({ content }: { content: string }) {
       <div className="prose prose-sm prose-invert max-w-none">
         {content.split("\n").map((line, i) => {
           if (line.trim() === "") return <div key={i} className="h-2" />;
-          return <p key={i} className="text-sm mb-2 text-foreground/90">{line}</p>;
+          return (
+            <p key={i} className="text-sm mb-2 text-foreground/90">
+              {line}
+            </p>
+          );
         })}
       </div>
     );
@@ -270,7 +311,9 @@ function AssessmentQuiz({ content }: { content: string }) {
         <div className="p-4 rounded-md border border-chart-4/20 bg-chart-4/5">
           <div className="flex items-center gap-2 mb-2">
             <HelpCircle className="size-4 text-chart-4" />
-            <span className="text-xs font-semibold uppercase text-chart-4">Assessment</span>
+            <span className="text-xs font-semibold uppercase text-chart-4">
+              Assessment
+            </span>
           </div>
           <p className="text-sm text-foreground/80">{intro}</p>
         </div>
@@ -279,8 +322,12 @@ function AssessmentQuiz({ content }: { content: string }) {
       {/* Score */}
       {totalRevealed > 0 && (
         <div className="flex items-center justify-between p-3 rounded-md border border-primary/20 bg-primary/5">
-          <span className="text-sm font-medium">Progress: {totalRevealed}/{questions.length} answered</span>
-          <Badge variant="outline" className="text-xs">Score: {totalCorrect}/{totalRevealed} correct</Badge>
+          <span className="text-sm font-medium">
+            Progress: {totalRevealed}/{questions.length} answered
+          </span>
+          <Badge variant="outline" className="text-xs">
+            Score: {totalCorrect}/{totalRevealed} correct
+          </Badge>
         </div>
       )}
 
@@ -293,13 +340,17 @@ function AssessmentQuiz({ content }: { content: string }) {
         return (
           <div key={idx}>
             {showSectionHeader && (
-              <h4 className="text-sm font-bold text-primary mt-6 mb-3">{q.section}</h4>
+              <h4 className="text-sm font-bold text-primary mt-6 mb-3">
+                {q.section}
+              </h4>
             )}
-            <div className={`p-4 rounded-md border transition-all ${
-              isRevealed
-                ? "border-success/20 bg-success/5"
-                : "border-border/30 hover:border-primary/30"
-            }`}>
+            <div
+              className={`p-4 rounded-md border transition-all ${
+                isRevealed
+                  ? "border-success/20 bg-success/5"
+                  : "border-border/30 hover:border-primary/30"
+              }`}
+            >
               <p className="text-sm font-medium mb-3">
                 <span className="text-primary font-bold mr-2">{idx + 1}.</span>
                 {q.question}
@@ -309,7 +360,9 @@ function AssessmentQuiz({ content }: { content: string }) {
                 <input
                   type="text"
                   value={userAnswers[idx] || ""}
-                  onChange={(e) => setUserAnswers(prev => ({ ...prev, [idx]: e.target.value }))}
+                  onChange={e =>
+                    setUserAnswers(prev => ({ ...prev, [idx]: e.target.value }))
+                  }
                   placeholder="Type your answer..."
                   className="flex-1 bg-muted/30 border border-border/30 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-primary/50"
                   disabled={isRevealed}
@@ -328,7 +381,9 @@ function AssessmentQuiz({ content }: { content: string }) {
               </div>
 
               {isRevealed && aiFeedback[idx] && (
-                <div className={`mt-3 p-3 rounded ${aiFeedback[idx].correct ? "bg-success/10 border border-success/20" : "bg-chart-4/10 border border-chart-4/20"}`}>
+                <div
+                  className={`mt-3 p-3 rounded ${aiFeedback[idx].correct ? "bg-success/10 border border-success/20" : "bg-chart-4/10 border border-chart-4/20"}`}
+                >
                   <div className="flex items-start gap-2">
                     {aiFeedback[idx].correct ? (
                       <CheckCircle2 className="size-4 text-success mt-0.5 shrink-0" />
@@ -337,8 +392,12 @@ function AssessmentQuiz({ content }: { content: string }) {
                     )}
                     <div>
                       <p className="text-xs mb-1">{aiFeedback[idx].feedback}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase mt-1">Expected Answer</p>
-                      <p className="text-sm font-medium text-success">{aiFeedback[idx].correctAnswer || q.correctAnswer}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase mt-1">
+                        Expected Answer
+                      </p>
+                      <p className="text-sm font-medium text-success">
+                        {aiFeedback[idx].correctAnswer || q.correctAnswer}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -374,30 +433,42 @@ function AssessmentQuiz({ content }: { content: string }) {
 }
 
 export function AcademyPage() {
-  const [selectedCourse, setSelectedCourse] = useState<Id<"courses"> | null>(null);
-  const [selectedLessonIdx, setSelectedLessonIdx] = useState<number | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Id<"courses"> | null>(
+    null,
+  );
+  const [selectedLessonIdx, setSelectedLessonIdx] = useState<number | null>(
+    null,
+  );
 
   const courses = useQuery(api.academy.listCourses, {});
   const enrollments = useQuery(api.academy.getMyEnrollments);
   const profile = useQuery(api.roles.getMyProfile);
   const lessons = useQuery(
     api.instructor.getLessons,
-    selectedCourse ? { courseId: selectedCourse } : "skip"
+    selectedCourse ? { courseId: selectedCourse } : "skip",
   );
   const enroll = useMutation(api.academy.enroll);
   const updateProgress = useMutation(api.academy.updateProgress);
   const checkPromotion = useMutation(api.roles.checkRolePromotion);
 
   if (courses === undefined) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading academy...</div>;
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        Loading academy...
+      </div>
+    );
   }
 
-  const enrolledCourseIds = new Set(enrollments?.map((e) => e.courseId) || []);
+  const enrolledCourseIds = new Set(enrollments?.map(e => e.courseId) || []);
   const currentRole = profile?.role || "operator";
-  const currentRoleIdx = roleProgression.findIndex((r) => r.role === currentRole);
-  const completedCount = enrollments?.filter((e) => e.status === "completed" || e.status === "certified").length || 0;
-  const selectedCourseData = courses.find((c) => c._id === selectedCourse);
-  const selectedLesson = selectedLessonIdx !== null && lessons ? lessons[selectedLessonIdx] : null;
+  const currentRoleIdx = roleProgression.findIndex(r => r.role === currentRole);
+  const completedCount =
+    enrollments?.filter(
+      e => e.status === "completed" || e.status === "certified",
+    ).length || 0;
+  const selectedCourseData = courses.find(c => c._id === selectedCourse);
+  const selectedLesson =
+    selectedLessonIdx !== null && lessons ? lessons[selectedLessonIdx] : null;
 
   // ─── LESSON READER VIEW ───
   if (selectedLesson && selectedCourseData) {
@@ -406,21 +477,31 @@ export function AcademyPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => setSelectedLessonIdx(null)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-xs"
+            onClick={() => setSelectedLessonIdx(null)}
+          >
             <ArrowLeft className="size-3" /> Back to Lessons
           </Button>
           <span className="text-xs text-muted-foreground">
-            {selectedCourseData.title} — Lesson {selectedLesson.order} of {lessons?.length}
+            {selectedCourseData.title} — Lesson {selectedLesson.order} of{" "}
+            {lessons?.length}
           </span>
         </div>
         <Card className="vigil-border">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
-              <Badge variant="outline" className={`text-[9px] uppercase ${isAssessment ? "bg-chart-4/10 text-chart-4 border-chart-4/20" : ""}`}>
+              <Badge
+                variant="outline"
+                className={`text-[9px] uppercase ${isAssessment ? "bg-chart-4/10 text-chart-4 border-chart-4/20" : ""}`}
+              >
                 {selectedLesson.type}
               </Badge>
               <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Clock className="size-3" /> {selectedLesson.durationMinutes} min
+                <Clock className="size-3" /> {selectedLesson.durationMinutes}{" "}
+                min
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -434,14 +515,41 @@ export function AcademyPage() {
             ) : (
               <div className="prose prose-sm prose-invert max-w-none">
                 {selectedLesson.content.split("\n").map((line, i) => {
-                  if (line.startsWith("SECTION") || line.startsWith("PART") || line.startsWith("SCENARIO") || /^[A-Z][A-Z ]+:$/.test(line.trim()) || /^[A-Z][A-Z ]+—/.test(line.trim())) {
-                    return <h4 key={i} className="text-sm font-bold text-primary mt-4 mb-2">{line}</h4>;
+                  if (
+                    line.startsWith("SECTION") ||
+                    line.startsWith("PART") ||
+                    line.startsWith("SCENARIO") ||
+                    /^[A-Z][A-Z ]+:$/.test(line.trim()) ||
+                    /^[A-Z][A-Z ]+—/.test(line.trim())
+                  ) {
+                    return (
+                      <h4
+                        key={i}
+                        className="text-sm font-bold text-primary mt-4 mb-2"
+                      >
+                        {line}
+                      </h4>
+                    );
                   }
-                  if (line.startsWith("•") || line.startsWith("✗") || line.startsWith("✓") || line.startsWith("→")) {
-                    return <p key={i} className="text-sm mb-1 pl-4">{line}</p>;
+                  if (
+                    line.startsWith("•") ||
+                    line.startsWith("✗") ||
+                    line.startsWith("✓") ||
+                    line.startsWith("→")
+                  ) {
+                    return (
+                      <p key={i} className="text-sm mb-1 pl-4">
+                        {line}
+                      </p>
+                    );
                   }
-                  if (line.trim() === "") return <div key={i} className="h-2" />;
-                  return <p key={i} className="text-sm mb-2 text-foreground/90">{line}</p>;
+                  if (line.trim() === "")
+                    return <div key={i} className="h-2" />;
+                  return (
+                    <p key={i} className="text-sm mb-2 text-foreground/90">
+                      {line}
+                    </p>
+                  );
                 })}
               </div>
             )}
@@ -472,11 +580,16 @@ export function AcademyPage() {
 
   // ─── COURSE LESSONS VIEW ───
   if (selectedCourse && selectedCourseData) {
-    const enrollment = enrollments?.find((e) => e.courseId === selectedCourse);
+    const enrollment = enrollments?.find(e => e.courseId === selectedCourse);
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => setSelectedCourse(null)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-xs"
+            onClick={() => setSelectedCourse(null)}
+          >
             <ArrowLeft className="size-3" /> Back to Academy
           </Button>
         </div>
@@ -485,14 +598,23 @@ export function AcademyPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className={categoryColors[selectedCourseData.category]}>
-                  {categoryIcons[selectedCourseData.category] || <BookOpen className="size-5" />}
+                  {categoryIcons[selectedCourseData.category] || (
+                    <BookOpen className="size-5" />
+                  )}
                 </span>
                 <div>
-                  <CardTitle className="text-lg">{selectedCourseData.title}</CardTitle>
-                  <CardDescription className="text-xs mt-1">{selectedCourseData.description}</CardDescription>
+                  <CardTitle className="text-lg">
+                    {selectedCourseData.title}
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-1">
+                    {selectedCourseData.description}
+                  </CardDescription>
                 </div>
               </div>
-              <Badge variant="outline" className={`text-[10px] uppercase ${difficultyStyles[selectedCourseData.difficulty]}`}>
+              <Badge
+                variant="outline"
+                className={`text-[10px] uppercase ${difficultyStyles[selectedCourseData.difficulty]}`}
+              >
                 {selectedCourseData.difficulty}
               </Badge>
             </div>
@@ -518,7 +640,9 @@ export function AcademyPage() {
           <Card className="vigil-border">
             <CardContent className="py-8 text-center">
               <BookOpen className="size-8 mx-auto text-muted-foreground/30 mb-2" />
-              <p className="text-xs text-muted-foreground">Lessons loading... Visit Dashboard to seed content.</p>
+              <p className="text-xs text-muted-foreground">
+                Lessons loading... Visit Dashboard to seed content.
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -539,9 +663,12 @@ export function AcademyPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{lesson.title}</p>
                     <div className="flex items-center gap-3 mt-0.5">
-                      <Badge variant="outline" className="text-[8px] uppercase">{lesson.type}</Badge>
+                      <Badge variant="outline" className="text-[8px] uppercase">
+                        {lesson.type}
+                      </Badge>
                       <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Clock className="size-2.5" /> {lesson.durationMinutes} min
+                        <Clock className="size-2.5" /> {lesson.durationMinutes}{" "}
+                        min
                       </span>
                     </div>
                   </div>
@@ -553,23 +680,31 @@ export function AcademyPage() {
         )}
 
         {!enrollment && (
-          <Button className="w-full" onClick={() => enroll({ courseId: selectedCourse })}>
+          <Button
+            className="w-full"
+            onClick={() => enroll({ courseId: selectedCourse })}
+          >
             <Shield className="size-4 mr-2" /> Enroll in This Course
           </Button>
         )}
-        {enrollment && enrollment.status !== "completed" && enrollment.status !== "certified" && (
-          <Button
-            className="w-full"
-            variant="outline"
-            onClick={async () => {
-              const next = Math.min(100, enrollment.progress + 25);
-              await updateProgress({ enrollmentId: enrollment._id, progress: next });
-              if (next >= 100) await checkPromotion();
-            }}
-          >
-            Mark Progress (+25%)
-          </Button>
-        )}
+        {enrollment &&
+          enrollment.status !== "completed" &&
+          enrollment.status !== "certified" && (
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={async () => {
+                const next = Math.min(100, enrollment.progress + 25);
+                await updateProgress({
+                  enrollmentId: enrollment._id,
+                  progress: next,
+                });
+                if (next >= 100) await checkPromotion();
+              }}
+            >
+              Mark Progress (+25%)
+            </Button>
+          )}
       </div>
     );
   }
@@ -605,12 +740,12 @@ export function AcademyPage() {
                 currentRole === "founder"
                   ? "bg-chart-4/10 text-chart-4 border-chart-4/20"
                   : currentRole === "superadmin"
-                  ? "bg-destructive/10 text-destructive border-destructive/20"
-                  : currentRole === "admin"
-                  ? "bg-chart-2/10 text-chart-2 border-chart-2/20"
-                  : currentRole === "certified"
-                  ? "bg-success/10 text-success border-success/20"
-                  : "bg-muted text-muted-foreground"
+                    ? "bg-destructive/10 text-destructive border-destructive/20"
+                    : currentRole === "admin"
+                      ? "bg-chart-2/10 text-chart-2 border-chart-2/20"
+                      : currentRole === "certified"
+                        ? "bg-success/10 text-success border-success/20"
+                        : "bg-muted text-muted-foreground"
               }`}
             >
               {currentRole === "founder" && <Star className="size-3 mr-1" />}
@@ -618,13 +753,15 @@ export function AcademyPage() {
             </Badge>
           </div>
           <CardDescription>
-            Complete courses and certifications to advance. {completedCount}/{courses.length} courses completed.
+            Complete courses and certifications to advance. {completedCount}/
+            {courses.length} courses completed.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-1">
             {roleProgression.map((step, idx) => {
-              const isActive = currentRole === step.role || (currentRole === "founder");
+              const isActive =
+                currentRole === step.role || currentRole === "founder";
               const isPast = currentRole === "founder" || currentRoleIdx > idx;
               return (
                 <div key={step.role} className="flex items-center flex-1">
@@ -633,16 +770,25 @@ export function AcademyPage() {
                       isActive
                         ? "border-primary/40 bg-primary/10"
                         : isPast
-                        ? "border-success/30 bg-success/5"
-                        : "border-border/50 opacity-50"
+                          ? "border-success/30 bg-success/5"
+                          : "border-border/50 opacity-50"
                     }`}
                   >
-                    <p className={`text-[10px] font-bold uppercase tracking-wider ${
-                      isActive ? "text-primary" : isPast ? "text-success" : "text-muted-foreground"
-                    }`}>
-                      {isPast && !isActive ? "✓ " : ""}{step.label}
+                    <p
+                      className={`text-[10px] font-bold uppercase tracking-wider ${
+                        isActive
+                          ? "text-primary"
+                          : isPast
+                            ? "text-success"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {isPast && !isActive ? "✓ " : ""}
+                      {step.label}
                     </p>
-                    <p className="text-[9px] text-muted-foreground mt-0.5">{step.desc}</p>
+                    <p className="text-[9px] text-muted-foreground mt-0.5">
+                      {step.desc}
+                    </p>
                   </div>
                   {idx < roleProgression.length - 1 && (
                     <ChevronRight className="size-3 text-muted-foreground/30 mx-0.5 shrink-0" />
@@ -661,7 +807,7 @@ export function AcademyPage() {
             My Courses
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {enrollments.map((enrollment) => (
+            {enrollments.map(enrollment => (
               <Card
                 key={enrollment._id}
                 className="vigil-border cursor-pointer transition-all hover:border-primary/30"
@@ -669,26 +815,47 @@ export function AcademyPage() {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
-                    <span className={categoryColors[enrollment.course?.category || ""]}>
-                      {categoryIcons[enrollment.course?.category || ""] || <BookOpen className="size-5" />}
+                    <span
+                      className={
+                        categoryColors[enrollment.course?.category || ""]
+                      }
+                    >
+                      {categoryIcons[enrollment.course?.category || ""] || (
+                        <BookOpen className="size-5" />
+                      )}
                     </span>
-                    <CardTitle className="text-sm">{enrollment.course?.title}</CardTitle>
+                    <CardTitle className="text-sm">
+                      {enrollment.course?.title}
+                    </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">{enrollment.progress}%</span>
+                      <span className="font-medium">
+                        {enrollment.progress}%
+                      </span>
                     </div>
                     <Progress value={enrollment.progress} className="h-1.5" />
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       {enrollment.status === "certified" ? (
-                        <><Award className="size-3 text-chart-4" /><span className="text-chart-4">Certified</span></>
+                        <>
+                          <Award className="size-3 text-chart-4" />
+                          <span className="text-chart-4">Certified</span>
+                        </>
                       ) : enrollment.status === "completed" ? (
-                        <><CheckCircle2 className="size-3 text-success" /><span className="text-success">Completed</span></>
+                        <>
+                          <CheckCircle2 className="size-3 text-success" />
+                          <span className="text-success">Completed</span>
+                        </>
                       ) : (
-                        <><Clock className="size-3" /><span className="capitalize">{enrollment.status.replace("_", " ")}</span></>
+                        <>
+                          <Clock className="size-3" />
+                          <span className="capitalize">
+                            {enrollment.status.replace("_", " ")}
+                          </span>
+                        </>
                       )}
                     </div>
                   </div>
@@ -715,7 +882,7 @@ export function AcademyPage() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {courses.map((course) => {
+            {courses.map(course => {
               const isEnrolled = enrolledCourseIds.has(course._id);
               return (
                 <Card
@@ -725,8 +892,12 @@ export function AcademyPage() {
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div className={`rounded-md p-2 ${categoryColors[course.category]} bg-muted`}>
-                        {categoryIcons[course.category] || <BookOpen className="size-5" />}
+                      <div
+                        className={`rounded-md p-2 ${categoryColors[course.category]} bg-muted`}
+                      >
+                        {categoryIcons[course.category] || (
+                          <BookOpen className="size-5" />
+                        )}
                       </div>
                       <Badge
                         variant="outline"
@@ -735,7 +906,9 @@ export function AcademyPage() {
                         {course.difficulty}
                       </Badge>
                     </div>
-                    <CardTitle className="text-base mt-3">{course.title}</CardTitle>
+                    <CardTitle className="text-base mt-3">
+                      {course.title}
+                    </CardTitle>
                     <CardDescription className="text-xs line-clamp-3">
                       {course.description}
                     </CardDescription>
@@ -752,11 +925,26 @@ export function AcademyPage() {
                       </div>
                     </div>
                     {isEnrolled ? (
-                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedCourse(course._id); }}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedCourse(course._id);
+                        }}
+                      >
                         <BookOpen className="size-4 mr-1.5" /> View Lessons
                       </Button>
                     ) : (
-                      <Button size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); enroll({ courseId: course._id }); }}>
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={e => {
+                          e.stopPropagation();
+                          enroll({ courseId: course._id });
+                        }}
+                      >
                         <Shield className="size-4 mr-1.5" /> Enroll
                       </Button>
                     )}

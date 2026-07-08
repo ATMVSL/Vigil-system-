@@ -1,11 +1,11 @@
-import { v } from "convex/values";
-import { action, query, mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { v } from "convex/values";
+import { action, mutation, query } from "./_generated/server";
 import {
-  buildMirrorSystemPrompt,
-  buildTrainingFeedbackPrompt,
-  buildSqlEvalPrompt,
   buildAssessmentGradingPrompt,
+  buildMirrorSystemPrompt,
+  buildSqlEvalPrompt,
+  buildTrainingFeedbackPrompt,
 } from "./mirrorPrompts";
 import { verifyDownwardFlow } from "./twins";
 
@@ -20,18 +20,31 @@ export const mirrorChat = action({
     pillar: v.optional(v.string()),
     cognitiveState: v.string(),
     callsign: v.string(),
-    recentReflections: v.optional(v.array(v.object({
-      content: v.string(),
-      role: v.string(),
-    }))),
+    recentReflections: v.optional(
+      v.array(
+        v.object({
+          content: v.string(),
+          role: v.string(),
+        }),
+      ),
+    ),
     voiceMode: v.optional(v.boolean()),
     userApiKey: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey: string | null = args.userApiKey || process.env.OPENAI_API_KEY || null;
-    if (!apiKey) return { response: "Mirror system requires an API key. Add yours in Settings.", error: true };
+    const apiKey: string | null =
+      args.userApiKey || process.env.OPENAI_API_KEY || null;
+    if (!apiKey)
+      return {
+        response: "Mirror system requires an API key. Add yours in Settings.",
+        error: true,
+      };
 
-    const systemPrompt = buildMirrorSystemPrompt(args.cognitiveState, args.callsign, args.voiceMode ?? false);
+    const systemPrompt = buildMirrorSystemPrompt(
+      args.cognitiveState,
+      args.callsign,
+      args.voiceMode ?? false,
+    );
 
     const messages: Array<{ role: string; content: string }> = [
       { role: "system", content: systemPrompt },
@@ -46,35 +59,52 @@ export const mirrorChat = action({
     messages.push({ role: "user", content: args.content });
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-5.4",
+            messages,
+            temperature: 0.75,
+          }),
         },
-        body: JSON.stringify({
-          model: "gpt-5.4",
-          messages,
-          temperature: 0.75,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const err = await response.text();
         console.error("OpenAI error:", err);
         if (response.status === 401) {
-          return { response: "API key is invalid. Please update your OpenAI API key in Settings.", error: true };
+          return {
+            response:
+              "API key is invalid. Please update your OpenAI API key in Settings.",
+            error: true,
+          };
         }
-        return { response: "The mirror encounters interference. Try again.", error: true };
+        return {
+          response: "The mirror encounters interference. Try again.",
+          error: true,
+        };
       }
 
       const data = await response.json();
       const mirrorResponse: string = data.choices[0].message.content;
 
       // ─── TWIN ALPHA: Verify downward flow ───
-      const twinCheck = verifyDownwardFlow(mirrorResponse, args.cognitiveState, args.callsign);
+      const twinCheck = verifyDownwardFlow(
+        mirrorResponse,
+        args.cognitiveState,
+        args.callsign,
+      );
       if (!twinCheck.passed) {
-        console.error("Twin Alpha verification FAILED:", JSON.stringify(twinCheck.violations));
+        console.error(
+          "Twin Alpha verification FAILED:",
+          JSON.stringify(twinCheck.violations),
+        );
         // On critical violation, return a safe doctrine-aligned response
         // rather than the non-compliant one
         return {
@@ -99,7 +129,10 @@ export const mirrorChat = action({
       };
     } catch (e) {
       console.error("Mirror AI error:", e);
-      return { response: "The mirror encounters interference. Try again.", error: true };
+      return {
+        response: "The mirror encounters interference. Try again.",
+        error: true,
+      };
     }
   },
 });
@@ -114,8 +147,14 @@ export const gradeTrainingResponse = action({
     userApiKey: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey: string | null = args.userApiKey || process.env.OPENAI_API_KEY || null;
-    if (!apiKey) return { score: 0, feedback: "AI grading unavailable. Add your API key in Settings.", error: true };
+    const apiKey: string | null =
+      args.userApiKey || process.env.OPENAI_API_KEY || null;
+    if (!apiKey)
+      return {
+        score: 0,
+        feedback: "AI grading unavailable. Add your API key in Settings.",
+        error: true,
+      };
 
     const messages = [
       { role: "system", content: buildTrainingFeedbackPrompt() },
@@ -126,24 +165,52 @@ export const gradeTrainingResponse = action({
     ];
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 400, temperature: 0.5 }),
-      });
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-5.4",
+            messages,
+            max_tokens: 400,
+            temperature: 0.5,
+          }),
+        },
+      );
       if (!response.ok) {
         const err = await response.text();
         console.error("Training grading error:", response.status, err);
         if (response.status === 401) {
-          return { score: 0, feedback: "API key is invalid. Please update your OpenAI API key in Settings.", error: true };
+          return {
+            score: 0,
+            feedback:
+              "API key is invalid. Please update your OpenAI API key in Settings.",
+            error: true,
+          };
         }
-        return { score: 0, feedback: "Evaluation system error. Try again.", error: true };
+        return {
+          score: 0,
+          feedback: "Evaluation system error. Try again.",
+          error: true,
+        };
       }
       const data = await response.json();
-      return { score: 0, feedback: data.choices[0].message.content, error: false };
+      return {
+        score: 0,
+        feedback: data.choices[0].message.content,
+        error: false,
+      };
     } catch (e) {
       console.error("Training grading error:", e);
-      return { score: 0, feedback: "Evaluation system error. Try again.", error: true };
+      return {
+        score: 0,
+        feedback: "Evaluation system error. Try again.",
+        error: true,
+      };
     }
   },
 });
@@ -160,8 +227,14 @@ export const evaluateSqlQuery = action({
     userApiKey: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey: string | null = args.userApiKey || process.env.OPENAI_API_KEY || null;
-    if (!apiKey) return { passed: false, feedback: "AI evaluation unavailable.", score: 0 };
+    const apiKey: string | null =
+      args.userApiKey || process.env.OPENAI_API_KEY || null;
+    if (!apiKey)
+      return {
+        passed: false,
+        feedback: "AI evaluation unavailable.",
+        score: 0,
+      };
 
     const messages = [
       { role: "system", content: buildSqlEvalPrompt() },
@@ -172,25 +245,51 @@ export const evaluateSqlQuery = action({
     ];
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
-      });
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-5.4",
+            messages,
+            max_tokens: 300,
+            temperature: 0.3,
+            response_format: { type: "json_object" },
+          }),
+        },
+      );
       if (!response.ok) {
         const err = await response.text();
         console.error("SQL evaluation error:", response.status, err);
         if (response.status === 401) {
-          return { passed: false, feedback: "API key is invalid. Please update your OpenAI API key in Settings.", score: 0 };
+          return {
+            passed: false,
+            feedback:
+              "API key is invalid. Please update your OpenAI API key in Settings.",
+            score: 0,
+          };
         }
         return { passed: false, feedback: "Evaluation error.", score: 0 };
       }
       const data = await response.json();
       try {
         const result = JSON.parse(data.choices[0].message.content);
-        return { passed: result.passed || false, feedback: result.feedback || "", score: result.score || 0, hints: result.hints || "" };
+        return {
+          passed: result.passed || false,
+          feedback: result.feedback || "",
+          score: result.score || 0,
+          hints: result.hints || "",
+        };
       } catch {
-        return { passed: false, feedback: data.choices[0].message.content, score: 0 };
+        return {
+          passed: false,
+          feedback: data.choices[0].message.content,
+          score: 0,
+        };
       }
     } catch (e) {
       console.error("SQL evaluation error:", e);
@@ -208,8 +307,10 @@ export const gradeAssessment = action({
     userApiKey: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey: string | null = args.userApiKey || process.env.OPENAI_API_KEY || null;
-    if (!apiKey) return { correct: false, feedback: "AI grading unavailable.", score: 0 };
+    const apiKey: string | null =
+      args.userApiKey || process.env.OPENAI_API_KEY || null;
+    if (!apiKey)
+      return { correct: false, feedback: "AI grading unavailable.", score: 0 };
 
     const messages = [
       { role: "system", content: buildAssessmentGradingPrompt() },
@@ -220,25 +321,51 @@ export const gradeAssessment = action({
     ];
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
-      });
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-5.4",
+            messages,
+            max_tokens: 300,
+            temperature: 0.3,
+            response_format: { type: "json_object" },
+          }),
+        },
+      );
       if (!response.ok) {
         const err = await response.text();
         console.error("Assessment grading error:", response.status, err);
         if (response.status === 401) {
-          return { correct: false, feedback: "API key is invalid. Please update your OpenAI API key in Settings.", score: 0 };
+          return {
+            correct: false,
+            feedback:
+              "API key is invalid. Please update your OpenAI API key in Settings.",
+            score: 0,
+          };
         }
         return { correct: false, feedback: "Grading error.", score: 0 };
       }
       const data = await response.json();
       try {
         const result = JSON.parse(data.choices[0].message.content);
-        return { correct: result.correct || false, feedback: result.feedback || "", score: result.score || 0, correctAnswer: result.correctAnswer || "" };
+        return {
+          correct: result.correct || false,
+          feedback: result.feedback || "",
+          score: result.score || 0,
+          correctAnswer: result.correctAnswer || "",
+        };
       } catch {
-        return { correct: false, feedback: data.choices[0].message.content, score: 0 };
+        return {
+          correct: false,
+          feedback: data.choices[0].message.content,
+          score: 0,
+        };
       }
     } catch (e) {
       console.error("Assessment grading error:", e);
@@ -251,26 +378,47 @@ export const gradeAssessment = action({
 export const generateSpeech = action({
   args: {
     text: v.string(),
-    voice: v.union(v.literal("alloy"), v.literal("echo"), v.literal("fable"), v.literal("onyx"), v.literal("nova"), v.literal("shimmer")),
+    voice: v.union(
+      v.literal("alloy"),
+      v.literal("echo"),
+      v.literal("fable"),
+      v.literal("onyx"),
+      v.literal("nova"),
+      v.literal("shimmer"),
+    ),
     userApiKey: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey: string | null = args.userApiKey || process.env.OPENAI_API_KEY || null;
+    const apiKey: string | null =
+      args.userApiKey || process.env.OPENAI_API_KEY || null;
     if (!apiKey) return { audio: null, error: "API key not configured." };
 
     try {
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "tts-1", input: args.text, voice: args.voice, response_format: "mp3" }),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "tts-1",
+          input: args.text,
+          voice: args.voice,
+          response_format: "mp3",
+        }),
       });
 
-      if (!response.ok) { console.error("TTS error:", await response.text()); return { audio: null, error: "Voice generation failed" }; }
+      if (!response.ok) {
+        console.error("TTS error:", await response.text());
+        return { audio: null, error: "Voice generation failed" };
+      }
 
       const arrayBuffer = await response.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
       let binary = "";
-      for (let i = 0; i < uint8Array.length; i++) { binary += String.fromCharCode(uint8Array[i]); }
+      for (let i = 0; i < uint8Array.length; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
       return { audio: btoa(binary), error: null };
     } catch (e) {
       console.error("TTS error:", e);
@@ -283,10 +431,13 @@ export const generateSpeech = action({
 
 export const getVoicePreference = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .first();
     return profile?.voiceGender || "female";
   },
 });
@@ -296,8 +447,12 @@ export const setVoicePreference = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q: any) => q.eq("userId", userId)).first();
-    if (profile) await ctx.db.patch(profile._id, { voiceGender: args.voiceGender });
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .first();
+    if (profile)
+      await ctx.db.patch(profile._id, { voiceGender: args.voiceGender });
   },
 });
 
@@ -308,7 +463,10 @@ export const getMyApiKey = query({
   handler: async (ctx): Promise<string | null> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .first();
     return profile?.openaiApiKey || null;
   },
 });
@@ -317,10 +475,13 @@ export const getMyApiKey = query({
 
 export const getAutoVoice = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return false;
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .first();
     return profile?.autoVoice ?? false;
   },
 });
@@ -330,7 +491,10 @@ export const setAutoVoice = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q: any) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .first();
     if (profile) await ctx.db.patch(profile._id, { autoVoice: args.enabled });
   },
 });
@@ -339,15 +503,27 @@ export const setAutoVoice = mutation({
 
 export const getApiKeyStatus = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return { hasKey: false, source: "none" as const };
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .first();
     if (profile?.openaiApiKey) {
       const key = profile.openaiApiKey;
-      return { hasKey: true, source: "user" as const, maskedKey: key.slice(0, 7) + "..." + key.slice(-4) };
+      return {
+        hasKey: true,
+        source: "user" as const,
+        maskedKey: `${key.slice(0, 7)}...${key.slice(-4)}`,
+      };
     }
-    if (process.env.OPENAI_API_KEY) return { hasKey: true, source: "system" as const, maskedKey: "System key active" };
+    if (process.env.OPENAI_API_KEY)
+      return {
+        hasKey: true,
+        source: "system" as const,
+        maskedKey: "System key active",
+      };
     return { hasKey: false, source: "none" as const };
   },
 });
@@ -357,17 +533,23 @@ export const setApiKey = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q: any) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .first();
     if (profile) await ctx.db.patch(profile._id, { openaiApiKey: args.apiKey });
   },
 });
 
 export const clearApiKey = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q: any) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .first();
     if (profile) await ctx.db.patch(profile._id, { openaiApiKey: undefined });
   },
 });
@@ -376,10 +558,13 @@ export const clearApiKey = mutation({
 
 export const getColorScheme = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return "vigil-green";
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q) => q.eq("userId", userId)).first();
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .first();
     return profile?.colorScheme || "vigil-green";
   },
 });
@@ -389,8 +574,12 @@ export const setColorScheme = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
-    const profile = await ctx.db.query("userProfiles").withIndex("by_user", (q: any) => q.eq("userId", userId)).first();
-    if (profile) await ctx.db.patch(profile._id, { colorScheme: args.colorScheme });
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .first();
+    if (profile)
+      await ctx.db.patch(profile._id, { colorScheme: args.colorScheme });
   },
 });
 
@@ -401,15 +590,18 @@ export const transcribeAudio = action({
     userApiKey: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey: string | null = args.userApiKey || process.env.OPENAI_API_KEY || null;
+    const apiKey: string | null =
+      args.userApiKey || process.env.OPENAI_API_KEY || null;
     if (!apiKey) return { text: "", error: "API key not configured." };
 
     try {
       const binaryString = atob(args.audioBase64);
       const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) { bytes[i] = binaryString.charCodeAt(i); }
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
 
-      const boundary = "----VIGILBoundary" + Date.now();
+      const boundary = `----VIGILBoundary${Date.now()}`;
       const modelPart = `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-1\r\n`;
       const fileHeader = `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.webm"\r\nContent-Type: audio/webm\r\n\r\n`;
       const fileFooter = `\r\n--${boundary}--\r\n`;
@@ -418,18 +610,29 @@ export const transcribeAudio = action({
       const headerBytes = enc.encode(modelPart + fileHeader);
       const footerBytes = enc.encode(fileFooter);
 
-      const body = new Uint8Array(headerBytes.length + bytes.length + footerBytes.length);
+      const body = new Uint8Array(
+        headerBytes.length + bytes.length + footerBytes.length,
+      );
       body.set(headerBytes, 0);
       body.set(bytes, headerBytes.length);
       body.set(footerBytes, headerBytes.length + bytes.length);
 
-      const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": `multipart/form-data; boundary=${boundary}` },
-        body: body,
-      });
+      const response = await fetch(
+        "https://api.openai.com/v1/audio/transcriptions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": `multipart/form-data; boundary=${boundary}`,
+          },
+          body: body,
+        },
+      );
 
-      if (!response.ok) { console.error("Whisper error:", await response.text()); return { text: "", error: "Transcription failed." }; }
+      if (!response.ok) {
+        console.error("Whisper error:", await response.text());
+        return { text: "", error: "Transcription failed." };
+      }
 
       const data = await response.json();
       return { text: data.text || "", error: null };

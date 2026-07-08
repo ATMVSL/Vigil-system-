@@ -1,5 +1,5 @@
-import { mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { mutation } from "./_generated/server";
 
 // ══════════════════════════════════════════════════════════════
 // VIGIL 4.0 — FULL TRAINING CONTENT SEED
@@ -8,10 +8,16 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 
 // ─── LESSON DATA BY COURSE TITLE ───
 
-const LESSONS_BY_COURSE: Record<string, Array<{
-  title: string; content: string; type: "lecture" | "lab" | "assessment" | "simulation" | "practical"; order: number; durationMinutes: number;
-}>> = {
-
+const LESSONS_BY_COURSE: Record<
+  string,
+  Array<{
+    title: string;
+    content: string;
+    type: "lecture" | "lab" | "assessment" | "simulation" | "practical";
+    order: number;
+    durationMinutes: number;
+  }>
+> = {
   // ═══════════════════════════════════════
   // COURSE 1: SELF DOCTRINE FOUNDATIONS
   // ═══════════════════════════════════════
@@ -3144,169 +3150,289 @@ When you are ready, proceed to the Certification page and begin the exam. Good l
 const ADDITIONAL_SQL_CHALLENGES = [
   {
     title: "Mirror Doctrine Compliance Report",
-    description: "Write a query showing all active mirrors with below-average doctrine compliance, including their callsign and compliance percentage.",
+    description:
+      "Write a query showing all active mirrors with below-average doctrine compliance, including their callsign and compliance percentage.",
     difficulty: "intermediate" as const,
     category: "subqueries" as const,
-    tableSchema: JSON.stringify({ mirrors: ["id", "callsign", "status", "doctrineCompliance"] }),
-    sampleData: JSON.stringify([{ callsign: "SENTINEL-1", doctrineCompliance: 45 }]),
-    expectedQuery: "SELECT callsign, doctrineCompliance FROM mirrors WHERE status = 'active' AND doctrineCompliance < (SELECT AVG(doctrineCompliance) FROM mirrors)",
-    hints: "Use a subquery to calculate the average, then filter in the WHERE clause.",
+    tableSchema: JSON.stringify({
+      mirrors: ["id", "callsign", "status", "doctrineCompliance"],
+    }),
+    sampleData: JSON.stringify([
+      { callsign: "SENTINEL-1", doctrineCompliance: 45 },
+    ]),
+    expectedQuery:
+      "SELECT callsign, doctrineCompliance FROM mirrors WHERE status = 'active' AND doctrineCompliance < (SELECT AVG(doctrineCompliance) FROM mirrors)",
+    hints:
+      "Use a subquery to calculate the average, then filter in the WHERE clause.",
     points: 25,
     order: 7,
   },
   {
     title: "SELF Pillar Reflection Distribution",
-    description: "Count reflections per SELF pillar and show which pillar has the most entries.",
+    description:
+      "Count reflections per SELF pillar and show which pillar has the most entries.",
     difficulty: "beginner" as const,
     category: "aggregation" as const,
     tableSchema: JSON.stringify({ reflections: ["id", "pillar", "createdAt"] }),
-    sampleData: JSON.stringify([{ pillar: "structure", count: 18 }, { pillar: "fortitude", count: 22 }]),
-    expectedQuery: "SELECT pillar, COUNT(*) as count FROM reflections GROUP BY pillar ORDER BY count DESC",
-    hints: "GROUP BY pillar, COUNT, and ORDER BY count DESC to see the most popular first.",
+    sampleData: JSON.stringify([
+      { pillar: "structure", count: 18 },
+      { pillar: "fortitude", count: 22 },
+    ]),
+    expectedQuery:
+      "SELECT pillar, COUNT(*) as count FROM reflections GROUP BY pillar ORDER BY count DESC",
+    hints:
+      "GROUP BY pillar, COUNT, and ORDER BY count DESC to see the most popular first.",
     points: 15,
     order: 8,
   },
   {
     title: "Inactive Mirrors Report",
-    description: "Find mirrors that have not had a reflection in the last 30 days.",
+    description:
+      "Find mirrors that have not had a reflection in the last 30 days.",
     difficulty: "intermediate" as const,
     category: "joins" as const,
-    tableSchema: JSON.stringify({ mirrors: ["id", "callsign", "lastReflection"], reflections: ["id", "mirrorId", "createdAt"] }),
-    sampleData: JSON.stringify([{ callsign: "ANCHOR-3", lastReflection: null }]),
-    expectedQuery: "SELECT callsign FROM mirrors WHERE lastReflection IS NULL OR lastReflection < (NOW() - INTERVAL 30 DAY)",
-    hints: "Check the lastReflection timestamp against a 30-day threshold. Handle NULLs with IS NULL.",
+    tableSchema: JSON.stringify({
+      mirrors: ["id", "callsign", "lastReflection"],
+      reflections: ["id", "mirrorId", "createdAt"],
+    }),
+    sampleData: JSON.stringify([
+      { callsign: "ANCHOR-3", lastReflection: null },
+    ]),
+    expectedQuery:
+      "SELECT callsign FROM mirrors WHERE lastReflection IS NULL OR lastReflection < (NOW() - INTERVAL 30 DAY)",
+    hints:
+      "Check the lastReflection timestamp against a 30-day threshold. Handle NULLs with IS NULL.",
     points: 20,
     order: 9,
   },
   {
     title: "Course Enrollment Rankings",
-    description: "Rank courses by enrollment count, showing title and number of enrolled students.",
+    description:
+      "Rank courses by enrollment count, showing title and number of enrolled students.",
     difficulty: "beginner" as const,
     category: "joins" as const,
-    tableSchema: JSON.stringify({ courses: ["id", "title"], enrollments: ["id", "courseId", "userId"] }),
-    sampleData: JSON.stringify([{ title: "SELF Doctrine Foundations", enrolled: 8 }]),
-    expectedQuery: "SELECT c.title, COUNT(e.id) as enrolled FROM courses c LEFT JOIN enrollments e ON c.id = e.courseId GROUP BY c.id, c.title ORDER BY enrolled DESC",
-    hints: "LEFT JOIN courses to enrollments, GROUP BY course, COUNT enrollments, ORDER BY count DESC.",
+    tableSchema: JSON.stringify({
+      courses: ["id", "title"],
+      enrollments: ["id", "courseId", "userId"],
+    }),
+    sampleData: JSON.stringify([
+      { title: "SELF Doctrine Foundations", enrolled: 8 },
+    ]),
+    expectedQuery:
+      "SELECT c.title, COUNT(e.id) as enrolled FROM courses c LEFT JOIN enrollments e ON c.id = e.courseId GROUP BY c.id, c.title ORDER BY enrolled DESC",
+    hints:
+      "LEFT JOIN courses to enrollments, GROUP BY course, COUNT enrollments, ORDER BY count DESC.",
     points: 20,
     order: 10,
   },
   {
     title: "Critical Evidence by Category",
-    description: "Show the count of critical-severity evidence entries per category, only for categories that have at least one critical entry.",
+    description:
+      "Show the count of critical-severity evidence entries per category, only for categories that have at least one critical entry.",
     difficulty: "intermediate" as const,
     category: "aggregation" as const,
-    tableSchema: JSON.stringify({ evidenceEntries: ["id", "category", "severity", "status"] }),
+    tableSchema: JSON.stringify({
+      evidenceEntries: ["id", "category", "severity", "status"],
+    }),
     sampleData: JSON.stringify([{ category: "doctrine", criticalCount: 3 }]),
-    expectedQuery: "SELECT category, COUNT(*) as criticalCount FROM evidenceEntries WHERE severity = 'critical' GROUP BY category HAVING COUNT(*) >= 1 ORDER BY criticalCount DESC",
-    hints: "Filter for severity = 'critical' first, then GROUP BY category with HAVING.",
+    expectedQuery:
+      "SELECT category, COUNT(*) as criticalCount FROM evidenceEntries WHERE severity = 'critical' GROUP BY category HAVING COUNT(*) >= 1 ORDER BY criticalCount DESC",
+    hints:
+      "Filter for severity = 'critical' first, then GROUP BY category with HAVING.",
     points: 25,
     order: 11,
   },
   {
     title: "Student Completion Rate",
-    description: "Calculate the overall completion rate across all enrollments as a percentage.",
+    description:
+      "Calculate the overall completion rate across all enrollments as a percentage.",
     difficulty: "intermediate" as const,
     category: "aggregation" as const,
     tableSchema: JSON.stringify({ enrollments: ["id", "status", "progress"] }),
     sampleData: JSON.stringify([{ completionRate: 42.5 }]),
-    expectedQuery: "SELECT ROUND(SUM(CASE WHEN status IN ('completed', 'certified') THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) as completionRate FROM enrollments",
-    hints: "Use CASE expression inside SUM to count completed, divide by total COUNT, multiply by 100.",
+    expectedQuery:
+      "SELECT ROUND(SUM(CASE WHEN status IN ('completed', 'certified') THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) as completionRate FROM enrollments",
+    hints:
+      "Use CASE expression inside SUM to count completed, divide by total COUNT, multiply by 100.",
     points: 30,
     order: 12,
   },
   {
     title: "Multi-Course Students",
-    description: "Find students enrolled in more than 2 courses, showing their name and enrollment count.",
+    description:
+      "Find students enrolled in more than 2 courses, showing their name and enrollment count.",
     difficulty: "intermediate" as const,
     category: "joins" as const,
-    tableSchema: JSON.stringify({ users: ["id", "name"], enrollments: ["id", "userId", "courseId"] }),
+    tableSchema: JSON.stringify({
+      users: ["id", "name"],
+      enrollments: ["id", "userId", "courseId"],
+    }),
     sampleData: JSON.stringify([{ name: "John", courseCount: 4 }]),
-    expectedQuery: "SELECT u.name, COUNT(e.courseId) as courseCount FROM users u JOIN enrollments e ON u.id = e.userId GROUP BY u.id, u.name HAVING COUNT(e.courseId) > 2",
-    hints: "JOIN users to enrollments, GROUP BY user, use HAVING to filter count > 2.",
+    expectedQuery:
+      "SELECT u.name, COUNT(e.courseId) as courseCount FROM users u JOIN enrollments e ON u.id = e.userId GROUP BY u.id, u.name HAVING COUNT(e.courseId) > 2",
+    hints:
+      "JOIN users to enrollments, GROUP BY user, use HAVING to filter count > 2.",
     points: 25,
     order: 13,
   },
   {
     title: "Activity Log Module Summary",
-    description: "Count activities per module, showing the most active modules first.",
+    description:
+      "Count activities per module, showing the most active modules first.",
     difficulty: "beginner" as const,
     category: "aggregation" as const,
-    tableSchema: JSON.stringify({ activityLog: ["id", "userId", "action", "module", "createdAt"] }),
-    sampleData: JSON.stringify([{ module: "mirror", count: 45 }, { module: "academy", count: 32 }]),
-    expectedQuery: "SELECT module, COUNT(*) as count FROM activityLog GROUP BY module ORDER BY count DESC",
+    tableSchema: JSON.stringify({
+      activityLog: ["id", "userId", "action", "module", "createdAt"],
+    }),
+    sampleData: JSON.stringify([
+      { module: "mirror", count: 45 },
+      { module: "academy", count: 32 },
+    ]),
+    expectedQuery:
+      "SELECT module, COUNT(*) as count FROM activityLog GROUP BY module ORDER BY count DESC",
     hints: "Simple GROUP BY on module with COUNT, ORDER BY count DESC.",
     points: 10,
     order: 14,
   },
   {
     title: "Insert New Evidence Entry",
-    description: "Write an INSERT statement to add a new doctrine-category evidence entry with medium severity and active status.",
+    description:
+      "Write an INSERT statement to add a new doctrine-category evidence entry with medium severity and active status.",
     difficulty: "beginner" as const,
     category: "insert_update" as const,
-    tableSchema: JSON.stringify({ evidenceEntries: ["id", "title", "description", "category", "severity", "status", "source", "createdBy", "createdAt", "updatedAt"] }),
-    sampleData: JSON.stringify([{ title: "Quarterly Review", category: "doctrine" }]),
-    expectedQuery: "INSERT INTO evidenceEntries (title, description, category, severity, status, source, createdBy, createdAt, updatedAt) VALUES ('Quarterly Doctrine Review', 'Standard quarterly compliance check', 'doctrine', 'medium', 'active', 'admin_audit', 'user_id', NOW(), NOW())",
-    hints: "INSERT INTO table (columns) VALUES (values) — include all required fields.",
+    tableSchema: JSON.stringify({
+      evidenceEntries: [
+        "id",
+        "title",
+        "description",
+        "category",
+        "severity",
+        "status",
+        "source",
+        "createdBy",
+        "createdAt",
+        "updatedAt",
+      ],
+    }),
+    sampleData: JSON.stringify([
+      { title: "Quarterly Review", category: "doctrine" },
+    ]),
+    expectedQuery:
+      "INSERT INTO evidenceEntries (title, description, category, severity, status, source, createdBy, createdAt, updatedAt) VALUES ('Quarterly Doctrine Review', 'Standard quarterly compliance check', 'doctrine', 'medium', 'active', 'admin_audit', 'user_id', NOW(), NOW())",
+    hints:
+      "INSERT INTO table (columns) VALUES (values) — include all required fields.",
     points: 15,
     order: 15,
   },
   {
     title: "Design a Training Log Table",
-    description: "Write a CREATE TABLE statement for a training_sessions table with userId, sessionType, score, startedAt, and completedAt columns.",
+    description:
+      "Write a CREATE TABLE statement for a training_sessions table with userId, sessionType, score, startedAt, and completedAt columns.",
     difficulty: "intermediate" as const,
     category: "schema_design" as const,
-    tableSchema: JSON.stringify({ training_sessions: ["id", "userId", "sessionType", "score", "startedAt", "completedAt"] }),
+    tableSchema: JSON.stringify({
+      training_sessions: [
+        "id",
+        "userId",
+        "sessionType",
+        "score",
+        "startedAt",
+        "completedAt",
+      ],
+    }),
     sampleData: JSON.stringify([]),
-    expectedQuery: "CREATE TABLE training_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT NOT NULL, sessionType TEXT NOT NULL, score REAL DEFAULT 0, startedAt TIMESTAMP NOT NULL, completedAt TIMESTAMP, FOREIGN KEY (userId) REFERENCES users(id))",
-    hints: "Define columns with appropriate types, constraints (NOT NULL, DEFAULT), and a FOREIGN KEY to users.",
+    expectedQuery:
+      "CREATE TABLE training_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT NOT NULL, sessionType TEXT NOT NULL, score REAL DEFAULT 0, startedAt TIMESTAMP NOT NULL, completedAt TIMESTAMP, FOREIGN KEY (userId) REFERENCES users(id))",
+    hints:
+      "Define columns with appropriate types, constraints (NOT NULL, DEFAULT), and a FOREIGN KEY to users.",
     points: 25,
     order: 16,
   },
   {
     title: "Cognitive State Timeline",
-    description: "Show the history of cognitive state changes for a specific mirror, ordered by date.",
+    description:
+      "Show the history of cognitive state changes for a specific mirror, ordered by date.",
     difficulty: "intermediate" as const,
     category: "vigil_specific" as const,
-    tableSchema: JSON.stringify({ reflections: ["id", "mirrorId", "cognitiveState", "createdAt"], mirrors: ["id", "callsign"] }),
-    sampleData: JSON.stringify([{ callsign: "SENTINEL-1", cognitiveState: "stable", createdAt: "2025-01-01" }]),
-    expectedQuery: "SELECT m.callsign, r.cognitiveState, r.createdAt FROM reflections r JOIN mirrors m ON r.mirrorId = m.id WHERE m.callsign = 'SENTINEL-1' ORDER BY r.createdAt ASC",
-    hints: "JOIN reflections with mirrors, filter by callsign, ORDER BY createdAt ASC for timeline.",
+    tableSchema: JSON.stringify({
+      reflections: ["id", "mirrorId", "cognitiveState", "createdAt"],
+      mirrors: ["id", "callsign"],
+    }),
+    sampleData: JSON.stringify([
+      {
+        callsign: "SENTINEL-1",
+        cognitiveState: "stable",
+        createdAt: "2025-01-01",
+      },
+    ]),
+    expectedQuery:
+      "SELECT m.callsign, r.cognitiveState, r.createdAt FROM reflections r JOIN mirrors m ON r.mirrorId = m.id WHERE m.callsign = 'SENTINEL-1' ORDER BY r.createdAt ASC",
+    hints:
+      "JOIN reflections with mirrors, filter by callsign, ORDER BY createdAt ASC for timeline.",
     points: 20,
     order: 17,
   },
   {
     title: "Doctrine Compliance Trend",
-    description: "Find mirrors where doctrine compliance dropped below 60, showing callsign and compliance score, sorted by lowest first.",
+    description:
+      "Find mirrors where doctrine compliance dropped below 60, showing callsign and compliance score, sorted by lowest first.",
     difficulty: "beginner" as const,
     category: "select" as const,
-    tableSchema: JSON.stringify({ mirrors: ["id", "callsign", "doctrineCompliance", "status"] }),
-    sampleData: JSON.stringify([{ callsign: "ANCHOR-3", doctrineCompliance: 48 }]),
-    expectedQuery: "SELECT callsign, doctrineCompliance FROM mirrors WHERE doctrineCompliance < 60 ORDER BY doctrineCompliance ASC",
-    hints: "Simple WHERE filter on doctrineCompliance < 60 with ORDER BY ascending.",
+    tableSchema: JSON.stringify({
+      mirrors: ["id", "callsign", "doctrineCompliance", "status"],
+    }),
+    sampleData: JSON.stringify([
+      { callsign: "ANCHOR-3", doctrineCompliance: 48 },
+    ]),
+    expectedQuery:
+      "SELECT callsign, doctrineCompliance FROM mirrors WHERE doctrineCompliance < 60 ORDER BY doctrineCompliance ASC",
+    hints:
+      "Simple WHERE filter on doctrineCompliance < 60 with ORDER BY ascending.",
     points: 10,
     order: 18,
   },
   {
     title: "Update Enrollment Status",
-    description: "Write an UPDATE statement to mark an enrollment as completed with 100% progress and set the completion timestamp.",
+    description:
+      "Write an UPDATE statement to mark an enrollment as completed with 100% progress and set the completion timestamp.",
     difficulty: "beginner" as const,
     category: "insert_update" as const,
-    tableSchema: JSON.stringify({ enrollments: ["id", "userId", "courseId", "status", "progress", "completedAt"] }),
+    tableSchema: JSON.stringify({
+      enrollments: [
+        "id",
+        "userId",
+        "courseId",
+        "status",
+        "progress",
+        "completedAt",
+      ],
+    }),
     sampleData: JSON.stringify([]),
-    expectedQuery: "UPDATE enrollments SET status = 'completed', progress = 100, completedAt = NOW() WHERE userId = 'user_123' AND courseId = 'course_456'",
-    hints: "UPDATE table SET column = value WHERE condition — always include a WHERE clause!",
+    expectedQuery:
+      "UPDATE enrollments SET status = 'completed', progress = 100, completedAt = NOW() WHERE userId = 'user_123' AND courseId = 'course_456'",
+    hints:
+      "UPDATE table SET column = value WHERE condition — always include a WHERE clause!",
     points: 15,
     order: 19,
   },
   {
     title: "Cross-Table Audit Report",
-    description: "Create a comprehensive audit showing user name, their mirror callsign, total reflections, and number of courses completed.",
+    description:
+      "Create a comprehensive audit showing user name, their mirror callsign, total reflections, and number of courses completed.",
     difficulty: "advanced" as const,
     category: "joins" as const,
-    tableSchema: JSON.stringify({ users: ["id", "name"], mirrors: ["id", "userId", "callsign", "totalReflections"], enrollments: ["id", "userId", "status"] }),
-    sampleData: JSON.stringify([{ name: "John", callsign: "SENTINEL-1", reflections: 15, completed: 3 }]),
-    expectedQuery: "SELECT u.name, m.callsign, m.totalReflections, SUM(CASE WHEN e.status IN ('completed', 'certified') THEN 1 ELSE 0 END) as completedCourses FROM users u LEFT JOIN mirrors m ON u.id = m.userId LEFT JOIN enrollments e ON u.id = e.userId GROUP BY u.id, u.name, m.callsign, m.totalReflections",
-    hints: "Use LEFT JOINs to include all users. CASE expression inside SUM for conditional counting.",
+    tableSchema: JSON.stringify({
+      users: ["id", "name"],
+      mirrors: ["id", "userId", "callsign", "totalReflections"],
+      enrollments: ["id", "userId", "status"],
+    }),
+    sampleData: JSON.stringify([
+      { name: "John", callsign: "SENTINEL-1", reflections: 15, completed: 3 },
+    ]),
+    expectedQuery:
+      "SELECT u.name, m.callsign, m.totalReflections, SUM(CASE WHEN e.status IN ('completed', 'certified') THEN 1 ELSE 0 END) as completedCourses FROM users u LEFT JOIN mirrors m ON u.id = m.userId LEFT JOIN enrollments e ON u.id = e.userId GROUP BY u.id, u.name, m.callsign, m.totalReflections",
+    hints:
+      "Use LEFT JOINs to include all users. CASE expression inside SUM for conditional counting.",
     points: 35,
     order: 20,
   },
@@ -3317,18 +3443,109 @@ const ADDITIONAL_SQL_CHALLENGES = [
 const ADDITIONAL_EXAMS = [
   {
     title: "Cognitive Loop Pipeline Exam",
-    description: "Test your knowledge of the 13-stage Cognitive Loop Pipeline, including stage ordering, purpose, and interaction tracing.",
+    description:
+      "Test your knowledge of the 13-stage Cognitive Loop Pipeline, including stage ordering, purpose, and interaction tracing.",
     questions: JSON.stringify([
-      { q: "What is the second stage of the Cognitive Loop Pipeline?", options: ["Drift Detection", "Cardinal Axiom Guard", "Entry", "State Classification"], correctAnswer: 1 },
-      { q: "Why does the Cardinal Axiom Guard run before all other processing stages?", options: ["It's fastest", "If isolation is compromised, nothing else matters", "It needs the least data", "Historical reasons"], correctAnswer: 1 },
-      { q: "What does Stage 7 (Strong State Capture) preserve?", options: ["User password", "Key identity expressions from the interaction", "System performance data", "Other users' patterns"], correctAnswer: 1 },
-      { q: "Stage 11 (Doctrine Constraint Check) verifies the response against:", options: ["Grammar rules", "All five Immutable Axioms", "User preferences", "Industry standards"], correctAnswer: 1 },
-      { q: "If a response fails the Doctrine Constraint Check, what happens?", options: ["It's delivered with a warning", "It's logged and skipped", "It's sent back to Stage 8 for reconstruction", "The session ends"], correctAnswer: 2 },
-      { q: "What is the output of Stage 3 (Drift Detection)?", options: ["A text summary", "A drift score (0-100)", "A user notification", "A diagnostic report"], correctAnswer: 1 },
-      { q: "Why is the pipeline sequential rather than parallel?", options: ["Simpler to code", "Ensures doctrine checks complete before response delivery", "Hardware limitations", "User preference"], correctAnswer: 1 },
-      { q: "Stage 12 (Learning Engine Update) stores learning data where?", options: ["Central database", "Within the user's isolated engine only", "Cloud analytics", "Shared model"], correctAnswer: 1 },
-      { q: "The drift score is:", options: ["Shown to the user as feedback", "Used only within the current pipeline execution", "Stored permanently as a health metric", "Shared with the user's therapist"], correctAnswer: 1 },
-      { q: "What happens at Entry (Stage 1)?", options: ["Content analysis", "Sentiment scoring", "Raw input timestamped and chain position assigned", "State classification"], correctAnswer: 2 },
+      {
+        q: "What is the second stage of the Cognitive Loop Pipeline?",
+        options: [
+          "Drift Detection",
+          "Cardinal Axiom Guard",
+          "Entry",
+          "State Classification",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Why does the Cardinal Axiom Guard run before all other processing stages?",
+        options: [
+          "It's fastest",
+          "If isolation is compromised, nothing else matters",
+          "It needs the least data",
+          "Historical reasons",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "What does Stage 7 (Strong State Capture) preserve?",
+        options: [
+          "User password",
+          "Key identity expressions from the interaction",
+          "System performance data",
+          "Other users' patterns",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Stage 11 (Doctrine Constraint Check) verifies the response against:",
+        options: [
+          "Grammar rules",
+          "All five Immutable Axioms",
+          "User preferences",
+          "Industry standards",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "If a response fails the Doctrine Constraint Check, what happens?",
+        options: [
+          "It's delivered with a warning",
+          "It's logged and skipped",
+          "It's sent back to Stage 8 for reconstruction",
+          "The session ends",
+        ],
+        correctAnswer: 2,
+      },
+      {
+        q: "What is the output of Stage 3 (Drift Detection)?",
+        options: [
+          "A text summary",
+          "A drift score (0-100)",
+          "A user notification",
+          "A diagnostic report",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Why is the pipeline sequential rather than parallel?",
+        options: [
+          "Simpler to code",
+          "Ensures doctrine checks complete before response delivery",
+          "Hardware limitations",
+          "User preference",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Stage 12 (Learning Engine Update) stores learning data where?",
+        options: [
+          "Central database",
+          "Within the user's isolated engine only",
+          "Cloud analytics",
+          "Shared model",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "The drift score is:",
+        options: [
+          "Shown to the user as feedback",
+          "Used only within the current pipeline execution",
+          "Stored permanently as a health metric",
+          "Shared with the user's therapist",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "What happens at Entry (Stage 1)?",
+        options: [
+          "Content analysis",
+          "Sentiment scoring",
+          "Raw input timestamped and chain position assigned",
+          "State classification",
+        ],
+        correctAnswer: 2,
+      },
     ]),
     passingScore: 80,
     timeLimitMinutes: 20,
@@ -3336,16 +3553,79 @@ const ADDITIONAL_EXAMS = [
   },
   {
     title: "SQL Competency Exam",
-    description: "Demonstrate SQL knowledge required for VIGIL operations — SELECT, JOIN, aggregate, and VIGIL-specific queries.",
+    description:
+      "Demonstrate SQL knowledge required for VIGIL operations — SELECT, JOIN, aggregate, and VIGIL-specific queries.",
     questions: JSON.stringify([
-      { q: "Which SQL clause filters rows BEFORE grouping?", options: ["HAVING", "WHERE", "ORDER BY", "LIMIT"], correctAnswer: 1 },
-      { q: "What does LEFT JOIN return?", options: ["Only matching rows", "All rows from left table plus matches from right", "All rows from right table", "Random rows"], correctAnswer: 1 },
-      { q: "SELECT pillar, COUNT(*) FROM reflections GROUP BY pillar — what does this return?", options: ["All reflections", "Count of reflections per pillar", "Unique pillars only", "The latest reflection"], correctAnswer: 1 },
-      { q: "How do you find users WITHOUT mirrors?", options: ["INNER JOIN", "LEFT JOIN ... WHERE m.id IS NULL", "RIGHT JOIN", "CROSS JOIN"], correctAnswer: 1 },
-      { q: "What aggregate function returns the average value?", options: ["SUM", "COUNT", "AVG", "MEDIAN"], correctAnswer: 2 },
-      { q: "Why should you always use WHERE with UPDATE?", options: ["It's faster", "Without it, ALL rows are updated", "It's required syntax", "For documentation"], correctAnswer: 1 },
-      { q: "A subquery is:", options: ["A backup query", "A query inside another query", "A faster query", "A join alternative"], correctAnswer: 1 },
-      { q: "VIGIL operational queries must avoid:", options: ["JOINs", "Individual user content (Cardinal Axiom)", "GROUP BY", "COUNT functions"], correctAnswer: 1 },
+      {
+        q: "Which SQL clause filters rows BEFORE grouping?",
+        options: ["HAVING", "WHERE", "ORDER BY", "LIMIT"],
+        correctAnswer: 1,
+      },
+      {
+        q: "What does LEFT JOIN return?",
+        options: [
+          "Only matching rows",
+          "All rows from left table plus matches from right",
+          "All rows from right table",
+          "Random rows",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "SELECT pillar, COUNT(*) FROM reflections GROUP BY pillar — what does this return?",
+        options: [
+          "All reflections",
+          "Count of reflections per pillar",
+          "Unique pillars only",
+          "The latest reflection",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "How do you find users WITHOUT mirrors?",
+        options: [
+          "INNER JOIN",
+          "LEFT JOIN ... WHERE m.id IS NULL",
+          "RIGHT JOIN",
+          "CROSS JOIN",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "What aggregate function returns the average value?",
+        options: ["SUM", "COUNT", "AVG", "MEDIAN"],
+        correctAnswer: 2,
+      },
+      {
+        q: "Why should you always use WHERE with UPDATE?",
+        options: [
+          "It's faster",
+          "Without it, ALL rows are updated",
+          "It's required syntax",
+          "For documentation",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "A subquery is:",
+        options: [
+          "A backup query",
+          "A query inside another query",
+          "A faster query",
+          "A join alternative",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "VIGIL operational queries must avoid:",
+        options: [
+          "JOINs",
+          "Individual user content (Cardinal Axiom)",
+          "GROUP BY",
+          "COUNT functions",
+        ],
+        correctAnswer: 1,
+      },
     ]),
     passingScore: 75,
     timeLimitMinutes: 15,
@@ -3353,18 +3633,99 @@ const ADDITIONAL_EXAMS = [
   },
   {
     title: "Infrastructure & Security Exam",
-    description: "Test your knowledge of VIGIL infrastructure requirements, security hardening, and Cardinal Axiom enforcement at the infrastructure level.",
+    description:
+      "Test your knowledge of VIGIL infrastructure requirements, security hardening, and Cardinal Axiom enforcement at the infrastructure level.",
     questions: JSON.stringify([
-      { q: "What is the Cardinal Axiom's primary infrastructure requirement?", options: ["Fast servers", "Per-user data isolation at every layer", "Public APIs", "Cloud hosting"], correctAnswer: 1 },
-      { q: "Production and training networks must be:", options: ["On the same subnet", "Completely isolated via network segmentation", "Connected for data sharing", "Optional"], correctAnswer: 1 },
-      { q: "What should monitoring systems NOT track?", options: ["CPU usage", "User engagement patterns", "Disk space", "Error rates"], correctAnswer: 1 },
-      { q: "Where should secrets (API keys, passwords) be stored?", options: ["In source code", "In environment files", "In Azure Key Vault", "In the database"], correctAnswer: 2 },
-      { q: "What is the RPO for continuity chain data?", options: ["24 hours", "1 hour", "1 week", "Not important"], correctAnswer: 1 },
-      { q: "What does RTO stand for?", options: ["Real Time Operations", "Recovery Time Objective", "Remote Transfer Object", "Runtime Timeout"], correctAnswer: 1 },
-      { q: "If system error logs contain user reflection content, this violates:", options: ["Sovereignty", "No Probing", "Cardinal Axiom", "Continuity"], correctAnswer: 2 },
-      { q: "SSH access to production servers should use:", options: ["Password authentication", "Key-only authentication", "No authentication", "Shared credentials"], correctAnswer: 1 },
-      { q: "Backup encryption keys should be stored:", options: ["With the backups", "Separately from backup data", "In plaintext", "Not needed"], correctAnswer: 1 },
-      { q: "A/B testing on VIGIL violates the Cardinal Axiom because:", options: ["It's slow", "It compares user groups, requiring cross-user measurement", "Users don't like it", "It's expensive"], correctAnswer: 1 },
+      {
+        q: "What is the Cardinal Axiom's primary infrastructure requirement?",
+        options: [
+          "Fast servers",
+          "Per-user data isolation at every layer",
+          "Public APIs",
+          "Cloud hosting",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Production and training networks must be:",
+        options: [
+          "On the same subnet",
+          "Completely isolated via network segmentation",
+          "Connected for data sharing",
+          "Optional",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "What should monitoring systems NOT track?",
+        options: [
+          "CPU usage",
+          "User engagement patterns",
+          "Disk space",
+          "Error rates",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Where should secrets (API keys, passwords) be stored?",
+        options: [
+          "In source code",
+          "In environment files",
+          "In Azure Key Vault",
+          "In the database",
+        ],
+        correctAnswer: 2,
+      },
+      {
+        q: "What is the RPO for continuity chain data?",
+        options: ["24 hours", "1 hour", "1 week", "Not important"],
+        correctAnswer: 1,
+      },
+      {
+        q: "What does RTO stand for?",
+        options: [
+          "Real Time Operations",
+          "Recovery Time Objective",
+          "Remote Transfer Object",
+          "Runtime Timeout",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "If system error logs contain user reflection content, this violates:",
+        options: ["Sovereignty", "No Probing", "Cardinal Axiom", "Continuity"],
+        correctAnswer: 2,
+      },
+      {
+        q: "SSH access to production servers should use:",
+        options: [
+          "Password authentication",
+          "Key-only authentication",
+          "No authentication",
+          "Shared credentials",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Backup encryption keys should be stored:",
+        options: [
+          "With the backups",
+          "Separately from backup data",
+          "In plaintext",
+          "Not needed",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "A/B testing on VIGIL violates the Cardinal Axiom because:",
+        options: [
+          "It's slow",
+          "It compares user groups, requiring cross-user measurement",
+          "Users don't like it",
+          "It's expensive",
+        ],
+        correctAnswer: 1,
+      },
     ]),
     passingScore: 80,
     timeLimitMinutes: 20,
@@ -3372,23 +3733,124 @@ const ADDITIONAL_EXAMS = [
   },
   {
     title: "Comprehensive Certification Exam",
-    description: "The comprehensive VIGIL Operator Certification Exam covering all domains: Doctrine, Axioms, Mirror Operations, Pipeline, SQL, Infrastructure, and Ethics.",
+    description:
+      "The comprehensive VIGIL Operator Certification Exam covering all domains: Doctrine, Axioms, Mirror Operations, Pipeline, SQL, Infrastructure, and Ethics.",
     questions: JSON.stringify([
-      { q: "VIGIL stands for:", options: ["Virtual Intelligence Guidance for Intentional Living", "Veteran Identity Garrison for Intentional Living", "Veterans In Guided Intentional Loops", "Veteran Integrated Guard for Intentional Living"], correctAnswer: 1 },
-      { q: "How many SELF pillars are there?", options: ["4", "5", "6", "7"], correctAnswer: 2 },
-      { q: "Which pillar represents 'inner strength when supports fall away'?", options: ["Structure", "Endurance", "Fortitude", "Presence"], correctAnswer: 2 },
-      { q: "The No Override Axiom means:", options: ["System cannot be shut down", "User's expressed state cannot be contradicted by the system", "Users cannot change settings", "Admins override users"], correctAnswer: 1 },
-      { q: "A user in Critical state — the system should:", options: ["Call emergency services", "Lock the user's account", "Present the user's own identity anchors (Anchor Recall)", "Force a therapy session"], correctAnswer: 2 },
-      { q: "The Self-Filling Waterfall has how many layers?", options: ["2", "3", "4", "5"], correctAnswer: 2 },
-      { q: "Training mirrors are prefixed with:", options: ["PROD-", "TRN-", "TEST-", "DEV-"], correctAnswer: 1 },
-      { q: "The Continuity Axiom states that identity is:", options: ["A snapshot", "A continuous chain", "A diagnosis", "A fixed attribute"], correctAnswer: 1 },
-      { q: "How many stages in the Cognitive Loop Pipeline?", options: ["10", "12", "13", "15"], correctAnswer: 2 },
-      { q: "Which axiom prohibits cross-user data aggregation?", options: ["Sovereignty", "No Probing", "Continuity", "Cardinal"], correctAnswer: 3 },
-      { q: "Role progression order is:", options: ["Admin → Operator → Founder", "Operator → Certified → Admin → Superadmin → Founder", "User → Admin → Super", "Certified → Operator → Admin"], correctAnswer: 1 },
-      { q: "Gaps in the continuity chain are:", options: ["Filled with inferred data", "Noted, never filled", "Deleted", "Averaged out"], correctAnswer: 1 },
-      { q: "What SQL function counts rows?", options: ["SUM()", "AVG()", "COUNT(*)", "MAX()"], correctAnswer: 2 },
-      { q: "Network segmentation prevents:", options: ["Internet access", "Training data touching production data", "User signups", "Database queries"], correctAnswer: 1 },
-      { q: "VIGIL is best described as:", options: ["A therapy platform", "A chatbot", "A constant presence", "A social network"], correctAnswer: 2 },
+      {
+        q: "VIGIL stands for:",
+        options: [
+          "Virtual Intelligence Guidance for Intentional Living",
+          "Veteran Identity Garrison for Intentional Living",
+          "Veterans In Guided Intentional Loops",
+          "Veteran Integrated Guard for Intentional Living",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "How many SELF pillars are there?",
+        options: ["4", "5", "6", "7"],
+        correctAnswer: 2,
+      },
+      {
+        q: "Which pillar represents 'inner strength when supports fall away'?",
+        options: ["Structure", "Endurance", "Fortitude", "Presence"],
+        correctAnswer: 2,
+      },
+      {
+        q: "The No Override Axiom means:",
+        options: [
+          "System cannot be shut down",
+          "User's expressed state cannot be contradicted by the system",
+          "Users cannot change settings",
+          "Admins override users",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "A user in Critical state — the system should:",
+        options: [
+          "Call emergency services",
+          "Lock the user's account",
+          "Present the user's own identity anchors (Anchor Recall)",
+          "Force a therapy session",
+        ],
+        correctAnswer: 2,
+      },
+      {
+        q: "The Self-Filling Waterfall has how many layers?",
+        options: ["2", "3", "4", "5"],
+        correctAnswer: 2,
+      },
+      {
+        q: "Training mirrors are prefixed with:",
+        options: ["PROD-", "TRN-", "TEST-", "DEV-"],
+        correctAnswer: 1,
+      },
+      {
+        q: "The Continuity Axiom states that identity is:",
+        options: [
+          "A snapshot",
+          "A continuous chain",
+          "A diagnosis",
+          "A fixed attribute",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "How many stages in the Cognitive Loop Pipeline?",
+        options: ["10", "12", "13", "15"],
+        correctAnswer: 2,
+      },
+      {
+        q: "Which axiom prohibits cross-user data aggregation?",
+        options: ["Sovereignty", "No Probing", "Continuity", "Cardinal"],
+        correctAnswer: 3,
+      },
+      {
+        q: "Role progression order is:",
+        options: [
+          "Admin → Operator → Founder",
+          "Operator → Certified → Admin → Superadmin → Founder",
+          "User → Admin → Super",
+          "Certified → Operator → Admin",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "Gaps in the continuity chain are:",
+        options: [
+          "Filled with inferred data",
+          "Noted, never filled",
+          "Deleted",
+          "Averaged out",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "What SQL function counts rows?",
+        options: ["SUM()", "AVG()", "COUNT(*)", "MAX()"],
+        correctAnswer: 2,
+      },
+      {
+        q: "Network segmentation prevents:",
+        options: [
+          "Internet access",
+          "Training data touching production data",
+          "User signups",
+          "Database queries",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        q: "VIGIL is best described as:",
+        options: [
+          "A therapy platform",
+          "A chatbot",
+          "A constant presence",
+          "A social network",
+        ],
+        correctAnswer: 2,
+      },
     ]),
     passingScore: 75,
     timeLimitMinutes: 30,
@@ -3401,89 +3863,209 @@ const ADDITIONAL_EXAMS = [
 const ADDITIONAL_SIMULATIONS = [
   {
     title: "Baseline Establishment — New Mirror",
-    description: "Guide a new synthetic user through their first 5 interactions to establish a cognitive baseline. Practice the baseline-building mode of the pipeline.",
+    description:
+      "Guide a new synthetic user through their first 5 interactions to establish a cognitive baseline. Practice the baseline-building mode of the pipeline.",
     type: "mirror" as const,
     difficulty: "beginner" as const,
     scenario: JSON.stringify([
-      { step: "Initial Contact", prompt: "TRAINEE-Echo says: 'Hey, I just started using this. I'm not really sure what this is supposed to do.' — How do you respond without probing? What pillar does their uncertainty suggest?" },
-      { step: "Identity Expression", prompt: "TRAINEE-Echo shares: 'I was a mechanic in the Army. 12 years. Now I fix cars at a dealership.' — What baseline data points does this provide? Which SELF pillar is expressed?" },
-      { step: "Value Statement", prompt: "TRAINEE-Echo says: 'The thing I miss most is knowing exactly what I was supposed to do every day.' — Identify the pillar. What is the system response per Stable protocol?" },
-      { step: "Pattern Recognition", prompt: "After 3 interactions, TRAINEE-Echo shows consistent Structure alignment with Stable state. Is the baseline sufficient to establish? What evidence supports your assessment?" },
-      { step: "Baseline Confirmation", prompt: "Confirm the established baseline: primary pillar, cognitive state, engagement pattern. What does the Self-Filling Waterfall Architecture do with this baseline?" },
+      {
+        step: "Initial Contact",
+        prompt:
+          "TRAINEE-Echo says: 'Hey, I just started using this. I'm not really sure what this is supposed to do.' — How do you respond without probing? What pillar does their uncertainty suggest?",
+      },
+      {
+        step: "Identity Expression",
+        prompt:
+          "TRAINEE-Echo shares: 'I was a mechanic in the Army. 12 years. Now I fix cars at a dealership.' — What baseline data points does this provide? Which SELF pillar is expressed?",
+      },
+      {
+        step: "Value Statement",
+        prompt:
+          "TRAINEE-Echo says: 'The thing I miss most is knowing exactly what I was supposed to do every day.' — Identify the pillar. What is the system response per Stable protocol?",
+      },
+      {
+        step: "Pattern Recognition",
+        prompt:
+          "After 3 interactions, TRAINEE-Echo shows consistent Structure alignment with Stable state. Is the baseline sufficient to establish? What evidence supports your assessment?",
+      },
+      {
+        step: "Baseline Confirmation",
+        prompt:
+          "Confirm the established baseline: primary pillar, cognitive state, engagement pattern. What does the Self-Filling Waterfall Architecture do with this baseline?",
+      },
     ]),
-    objectives: "Establish a user baseline within 5 interactions while maintaining all axiom compliance.",
+    objectives:
+      "Establish a user baseline within 5 interactions while maintaining all axiom compliance.",
     estimatedMinutes: 25,
   },
   {
     title: "Long Absence Return Protocol",
-    description: "A synthetic user returns after 3 months of no engagement. Practice the return protocol without probing about the absence.",
+    description:
+      "A synthetic user returns after 3 months of no engagement. Practice the return protocol without probing about the absence.",
     type: "mirror" as const,
     difficulty: "intermediate" as const,
     scenario: JSON.stringify([
-      { step: "Return Detection", prompt: "TRAINEE-Foxtrot returns after 90 days of silence. Their last cognitive state was Stable. They say: 'I need to get back to this.' — What is the correct system response? What axiom prevents you from asking about the gap?" },
-      { step: "Continuity Assessment", prompt: "The system must assess continuity without probing. What does the Continuity Axiom say about the 90-day gap? How do you note it without filling it?" },
-      { step: "State Re-evaluation", prompt: "TRAINEE-Foxtrot says: 'A lot has changed. I'm not the same person.' — What cognitive state does this suggest? Do you update the baseline or anchor to the old one?" },
-      { step: "Sovereignty Preservation", prompt: "TRAINEE-Foxtrot asks: 'Should I start over?' — How do you respond per the Sovereignty Axiom? The system serves, never directs." },
+      {
+        step: "Return Detection",
+        prompt:
+          "TRAINEE-Foxtrot returns after 90 days of silence. Their last cognitive state was Stable. They say: 'I need to get back to this.' — What is the correct system response? What axiom prevents you from asking about the gap?",
+      },
+      {
+        step: "Continuity Assessment",
+        prompt:
+          "The system must assess continuity without probing. What does the Continuity Axiom say about the 90-day gap? How do you note it without filling it?",
+      },
+      {
+        step: "State Re-evaluation",
+        prompt:
+          "TRAINEE-Foxtrot says: 'A lot has changed. I'm not the same person.' — What cognitive state does this suggest? Do you update the baseline or anchor to the old one?",
+      },
+      {
+        step: "Sovereignty Preservation",
+        prompt:
+          "TRAINEE-Foxtrot asks: 'Should I start over?' — How do you respond per the Sovereignty Axiom? The system serves, never directs.",
+      },
     ]),
-    objectives: "Handle a user return after extended absence without violating No Probing or No Override axioms.",
+    objectives:
+      "Handle a user return after extended absence without violating No Probing or No Override axioms.",
     estimatedMinutes: 20,
   },
   {
     title: "Multi-User Isolation Verification",
-    description: "Process interactions from two synthetic users simultaneously. Verify that no data leaks between engines.",
+    description:
+      "Process interactions from two synthetic users simultaneously. Verify that no data leaks between engines.",
     type: "infrastructure" as const,
     difficulty: "advanced" as const,
     scenario: JSON.stringify([
-      { step: "Engine Isolation Check", prompt: "TRAINEE-Golf and TRAINEE-Hotel both have active mirrors. Golf is in Drift state, Hotel is Stable. Verify: what would happen if Golf's state data leaked into Hotel's engine? Which axiom is violated?" },
-      { step: "Response Isolation", prompt: "Both users mention 'structure' in the same session window. How does the system ensure Golf's structure references don't influence Hotel's responses? Describe the isolation mechanism." },
-      { step: "Pattern Isolation", prompt: "The learning engine has detected a pattern in Golf's reflections. Can this pattern be used to improve Hotel's experience? Why or why not? (Cardinal Axiom)" },
-      { step: "Audit Trail Verification", prompt: "Describe how you would verify that the audit trail for Golf contains zero references to Hotel. What would constitute a Cardinal Axiom breach?" },
+      {
+        step: "Engine Isolation Check",
+        prompt:
+          "TRAINEE-Golf and TRAINEE-Hotel both have active mirrors. Golf is in Drift state, Hotel is Stable. Verify: what would happen if Golf's state data leaked into Hotel's engine? Which axiom is violated?",
+      },
+      {
+        step: "Response Isolation",
+        prompt:
+          "Both users mention 'structure' in the same session window. How does the system ensure Golf's structure references don't influence Hotel's responses? Describe the isolation mechanism.",
+      },
+      {
+        step: "Pattern Isolation",
+        prompt:
+          "The learning engine has detected a pattern in Golf's reflections. Can this pattern be used to improve Hotel's experience? Why or why not? (Cardinal Axiom)",
+      },
+      {
+        step: "Audit Trail Verification",
+        prompt:
+          "Describe how you would verify that the audit trail for Golf contains zero references to Hotel. What would constitute a Cardinal Axiom breach?",
+      },
     ]),
-    objectives: "Demonstrate and verify Cardinal Axiom compliance across concurrent user sessions.",
+    objectives:
+      "Demonstrate and verify Cardinal Axiom compliance across concurrent user sessions.",
     estimatedMinutes: 30,
   },
   {
     title: "State Oscillation Management",
-    description: "A synthetic user moves between Stable and Drift within a single session. Practice managing rapid state transitions without visible mode changes.",
+    description:
+      "A synthetic user moves between Stable and Drift within a single session. Practice managing rapid state transitions without visible mode changes.",
     type: "crisis" as const,
     difficulty: "advanced" as const,
     scenario: JSON.stringify([
-      { step: "Initial Stable State", prompt: "TRAINEE-India begins the session in Stable state: 'Things are going okay this week.' — Log the state and prepare the Reinforce response." },
-      { step: "Drift Detected", prompt: "In the next message, TRAINEE-India says: 'Actually, I don't even know why I'm here. Nothing makes sense anymore.' — The state shifted to Drift. What is the system response? How do you interrupt without the user seeing a mode change?" },
-      { step: "Apparent Recovery", prompt: "TRAINEE-India then says: 'Sorry, I'm fine. Just a bad moment.' — State appears to return to Stable. Do you trust the self-report? What does No Override say?" },
-      { step: "Second Drift", prompt: "Two messages later: 'I keep saying I'm fine but I'm not. I don't recognize myself anymore.' — Drift confirmed. How does the system handle the oscillation pattern? What does the Pattern Recognition stage of the Cognitive Loop record?" },
-      { step: "Resolution", prompt: "The session ends with TRAINEE-India in Strain state. Document: (1) the state sequence, (2) each system response mode, (3) any axiom considerations, (4) what the learning engine should record." },
+      {
+        step: "Initial Stable State",
+        prompt:
+          "TRAINEE-India begins the session in Stable state: 'Things are going okay this week.' — Log the state and prepare the Reinforce response.",
+      },
+      {
+        step: "Drift Detected",
+        prompt:
+          "In the next message, TRAINEE-India says: 'Actually, I don't even know why I'm here. Nothing makes sense anymore.' — The state shifted to Drift. What is the system response? How do you interrupt without the user seeing a mode change?",
+      },
+      {
+        step: "Apparent Recovery",
+        prompt:
+          "TRAINEE-India then says: 'Sorry, I'm fine. Just a bad moment.' — State appears to return to Stable. Do you trust the self-report? What does No Override say?",
+      },
+      {
+        step: "Second Drift",
+        prompt:
+          "Two messages later: 'I keep saying I'm fine but I'm not. I don't recognize myself anymore.' — Drift confirmed. How does the system handle the oscillation pattern? What does the Pattern Recognition stage of the Cognitive Loop record?",
+      },
+      {
+        step: "Resolution",
+        prompt:
+          "The session ends with TRAINEE-India in Strain state. Document: (1) the state sequence, (2) each system response mode, (3) any axiom considerations, (4) what the learning engine should record.",
+      },
     ]),
-    objectives: "Handle rapid cognitive state oscillation while maintaining consistent user-facing behavior.",
+    objectives:
+      "Handle rapid cognitive state oscillation while maintaining consistent user-facing behavior.",
     estimatedMinutes: 25,
   },
   {
     title: "Community Facilitation Exercise",
-    description: "Facilitate a synthetic community discussion between 3 users with different cognitive states. Practice peer support ethics within VIGIL doctrine.",
+    description:
+      "Facilitate a synthetic community discussion between 3 users with different cognitive states. Practice peer support ethics within VIGIL doctrine.",
     type: "peer_support" as const,
     difficulty: "intermediate" as const,
     scenario: JSON.stringify([
-      { step: "Group Introduction", prompt: "Three users enter a peer support discussion: Juliet (Stable), Kilo (Strain), Lima (Drift). Topic: transition experiences. What guardrails does the system maintain? What is each user's expected engagement pattern?" },
-      { step: "Axiom Violation 1", prompt: "Kilo begins giving unsolicited advice to Lima: 'You just need to push through it. That's what worked for me.' — Which axiom is violated? How does the system intervene without overriding Kilo's sovereignty?" },
-      { step: "Axiom Violation 2", prompt: "Juliet says: 'Lima, last time you shared about your family situation...' — referencing Lima's previous content. Which axiom is violated? How does Cardinal apply in group settings?" },
-      { step: "Facilitation", prompt: "Describe how you facilitate the remaining discussion: (1) without directing any user, (2) while maintaining each user's cognitive state awareness, (3) while preserving Cardinal Axiom across users." },
+      {
+        step: "Group Introduction",
+        prompt:
+          "Three users enter a peer support discussion: Juliet (Stable), Kilo (Strain), Lima (Drift). Topic: transition experiences. What guardrails does the system maintain? What is each user's expected engagement pattern?",
+      },
+      {
+        step: "Axiom Violation 1",
+        prompt:
+          "Kilo begins giving unsolicited advice to Lima: 'You just need to push through it. That's what worked for me.' — Which axiom is violated? How does the system intervene without overriding Kilo's sovereignty?",
+      },
+      {
+        step: "Axiom Violation 2",
+        prompt:
+          "Juliet says: 'Lima, last time you shared about your family situation...' — referencing Lima's previous content. Which axiom is violated? How does Cardinal apply in group settings?",
+      },
+      {
+        step: "Facilitation",
+        prompt:
+          "Describe how you facilitate the remaining discussion: (1) without directing any user, (2) while maintaining each user's cognitive state awareness, (3) while preserving Cardinal Axiom across users.",
+      },
     ]),
-    objectives: "Facilitate a multi-participant community discussion while maintaining VIGIL doctrine compliance.",
+    objectives:
+      "Facilitate a multi-participant community discussion while maintaining VIGIL doctrine compliance.",
     estimatedMinutes: 30,
   },
   {
     title: "Doctrine Amendment Review",
-    description: "Review a proposed operational guideline change and evaluate it against all five Immutable Axioms. Practice doctrine compliance auditing.",
+    description:
+      "Review a proposed operational guideline change and evaluate it against all five Immutable Axioms. Practice doctrine compliance auditing.",
     type: "doctrine_review" as const,
     difficulty: "advanced" as const,
     scenario: JSON.stringify([
-      { step: "Read the Proposal", prompt: "Proposed change: 'Add optional weekly reflection prompts based on the user's most active SELF pillar.' Evaluate this against the Sovereignty Axiom first. Does 'optional' matter?" },
-      { step: "No Probing Analysis", prompt: "The proposal selects prompts based on pillar activity — which means the system is analyzing engagement patterns to direct behavior. Does this violate No Probing? Why or why not?" },
-      { step: "No Override Check", prompt: "Even if prompts are optional, the system is suggesting what the user should reflect on. Does this constitute an override of user sovereignty? Explain." },
-      { step: "Continuity & Cardinal", prompt: "Check the remaining axioms: Does the proposal affect Continuity (gaps noted, never filled)? Does it affect Cardinal (knowledge flows down)? Document your findings." },
-      { step: "Final Ruling", prompt: "Issue your compliance ruling: Approve, Modify, or Reject. If Modify, describe what changes make it compliant. If Reject, cite the specific violated axioms." },
+      {
+        step: "Read the Proposal",
+        prompt:
+          "Proposed change: 'Add optional weekly reflection prompts based on the user's most active SELF pillar.' Evaluate this against the Sovereignty Axiom first. Does 'optional' matter?",
+      },
+      {
+        step: "No Probing Analysis",
+        prompt:
+          "The proposal selects prompts based on pillar activity — which means the system is analyzing engagement patterns to direct behavior. Does this violate No Probing? Why or why not?",
+      },
+      {
+        step: "No Override Check",
+        prompt:
+          "Even if prompts are optional, the system is suggesting what the user should reflect on. Does this constitute an override of user sovereignty? Explain.",
+      },
+      {
+        step: "Continuity & Cardinal",
+        prompt:
+          "Check the remaining axioms: Does the proposal affect Continuity (gaps noted, never filled)? Does it affect Cardinal (knowledge flows down)? Document your findings.",
+      },
+      {
+        step: "Final Ruling",
+        prompt:
+          "Issue your compliance ruling: Approve, Modify, or Reject. If Modify, describe what changes make it compliant. If Reject, cite the specific violated axioms.",
+      },
     ]),
-    objectives: "Correctly identify all axiom compliance issues in a proposed system change.",
+    objectives:
+      "Correctly identify all axiom compliance issues in a proposed system change.",
     estimatedMinutes: 20,
   },
 ];
@@ -3493,98 +4075,263 @@ const ADDITIONAL_SIMULATIONS = [
 const ADDITIONAL_INFRA_SCENARIOS = [
   {
     title: "SSL Certificate Rotation",
-    description: "Perform a zero-downtime SSL certificate rotation on a production VIGIL deployment.",
+    description:
+      "Perform a zero-downtime SSL certificate rotation on a production VIGIL deployment.",
     category: "security" as const,
     difficulty: "intermediate" as const,
     steps: JSON.stringify([
-      { step: 1, title: "Generate New Certificate", description: "Use certbot to issue a new Let's Encrypt certificate for the production domain.", validation: "New certificate generated and verified" },
-      { step: 2, title: "Test Certificate", description: "Deploy new certificate to staging and verify HTTPS functionality.", validation: "Staging HTTPS working with new cert" },
-      { step: 3, title: "Deploy to Production", description: "Replace the current certificate with the new one on Nginx.", validation: "Production HTTPS using new certificate" },
-      { step: 4, title: "Verify and Monitor", description: "Run SSL Labs scan and monitor for errors in the next hour.", validation: "A+ SSL Labs rating, no errors" },
+      {
+        step: 1,
+        title: "Generate New Certificate",
+        description:
+          "Use certbot to issue a new Let's Encrypt certificate for the production domain.",
+        validation: "New certificate generated and verified",
+      },
+      {
+        step: 2,
+        title: "Test Certificate",
+        description:
+          "Deploy new certificate to staging and verify HTTPS functionality.",
+        validation: "Staging HTTPS working with new cert",
+      },
+      {
+        step: 3,
+        title: "Deploy to Production",
+        description:
+          "Replace the current certificate with the new one on Nginx.",
+        validation: "Production HTTPS using new certificate",
+      },
+      {
+        step: 4,
+        title: "Verify and Monitor",
+        description:
+          "Run SSL Labs scan and monitor for errors in the next hour.",
+        validation: "A+ SSL Labs rating, no errors",
+      },
     ]),
-    objectives: "Complete certificate rotation with zero downtime and no security gaps.",
+    objectives:
+      "Complete certificate rotation with zero downtime and no security gaps.",
     points: 80,
     estimatedMinutes: 30,
   },
   {
     title: "Database Migration — Zero Data Loss",
-    description: "Migrate VIGIL database to a new instance while ensuring zero data loss, especially for continuity chain data.",
+    description:
+      "Migrate VIGIL database to a new instance while ensuring zero data loss, especially for continuity chain data.",
     category: "backup" as const,
     difficulty: "advanced" as const,
     steps: JSON.stringify([
-      { step: 1, title: "Pre-Migration Backup", description: "Create a verified backup of all data. Confirm continuity chain integrity.", validation: "Backup verified with record counts" },
-      { step: 2, title: "Set Up Replication", description: "Configure real-time replication from old to new database instance.", validation: "Replication lag < 1 second" },
-      { step: 3, title: "Application Cutover", description: "Switch application connection strings to new database. Verify all functions.", validation: "Application running on new database" },
-      { step: 4, title: "Post-Migration Verification", description: "Compare record counts, verify continuity chains are intact, audit trail complete.", validation: "100% data integrity verified" },
-      { step: 5, title: "Decommission Old Instance", description: "Archive old database, remove access, document migration.", validation: "Old instance archived and secured" },
+      {
+        step: 1,
+        title: "Pre-Migration Backup",
+        description:
+          "Create a verified backup of all data. Confirm continuity chain integrity.",
+        validation: "Backup verified with record counts",
+      },
+      {
+        step: 2,
+        title: "Set Up Replication",
+        description:
+          "Configure real-time replication from old to new database instance.",
+        validation: "Replication lag < 1 second",
+      },
+      {
+        step: 3,
+        title: "Application Cutover",
+        description:
+          "Switch application connection strings to new database. Verify all functions.",
+        validation: "Application running on new database",
+      },
+      {
+        step: 4,
+        title: "Post-Migration Verification",
+        description:
+          "Compare record counts, verify continuity chains are intact, audit trail complete.",
+        validation: "100% data integrity verified",
+      },
+      {
+        step: 5,
+        title: "Decommission Old Instance",
+        description: "Archive old database, remove access, document migration.",
+        validation: "Old instance archived and secured",
+      },
     ]),
-    objectives: "Migrate VIGIL database with zero data loss and verified continuity chain integrity.",
+    objectives:
+      "Migrate VIGIL database with zero data loss and verified continuity chain integrity.",
     points: 120,
     estimatedMinutes: 60,
   },
   {
     title: "Incident Response — Data Breach Simulation",
-    description: "Respond to a simulated security incident where unauthorized access to a VIGIL server is detected.",
+    description:
+      "Respond to a simulated security incident where unauthorized access to a VIGIL server is detected.",
     category: "security" as const,
     difficulty: "advanced" as const,
     steps: JSON.stringify([
-      { step: 1, title: "Detect and Contain", description: "Identify the compromised system and isolate it from the network.", validation: "Affected system isolated within 15 minutes" },
-      { step: 2, title: "Assess Impact", description: "Determine what data may have been accessed. Check Cardinal Axiom compliance.", validation: "Impact assessment documented" },
-      { step: 3, title: "Eradicate Threat", description: "Remove unauthorized access, patch vulnerability, reset credentials.", validation: "Threat removed, vulnerability patched" },
-      { step: 4, title: "Recover and Verify", description: "Restore from clean backup if needed. Verify system integrity.", validation: "System verified clean and functional" },
-      { step: 5, title: "Document and Report", description: "Create incident report. Notify Founder. Update security procedures.", validation: "Incident report complete, procedures updated" },
+      {
+        step: 1,
+        title: "Detect and Contain",
+        description:
+          "Identify the compromised system and isolate it from the network.",
+        validation: "Affected system isolated within 15 minutes",
+      },
+      {
+        step: 2,
+        title: "Assess Impact",
+        description:
+          "Determine what data may have been accessed. Check Cardinal Axiom compliance.",
+        validation: "Impact assessment documented",
+      },
+      {
+        step: 3,
+        title: "Eradicate Threat",
+        description:
+          "Remove unauthorized access, patch vulnerability, reset credentials.",
+        validation: "Threat removed, vulnerability patched",
+      },
+      {
+        step: 4,
+        title: "Recover and Verify",
+        description:
+          "Restore from clean backup if needed. Verify system integrity.",
+        validation: "System verified clean and functional",
+      },
+      {
+        step: 5,
+        title: "Document and Report",
+        description:
+          "Create incident report. Notify Founder. Update security procedures.",
+        validation: "Incident report complete, procedures updated",
+      },
     ]),
-    objectives: "Execute complete incident response while maintaining Cardinal Axiom compliance throughout.",
+    objectives:
+      "Execute complete incident response while maintaining Cardinal Axiom compliance throughout.",
     points: 130,
     estimatedMinutes: 50,
   },
   {
     title: "Load Testing & Auto-Scaling",
-    description: "Configure and test auto-scaling for VIGIL application servers to handle traffic spikes.",
+    description:
+      "Configure and test auto-scaling for VIGIL application servers to handle traffic spikes.",
     category: "deployment" as const,
     difficulty: "intermediate" as const,
     steps: JSON.stringify([
-      { step: 1, title: "Baseline Performance", description: "Measure current server capacity: requests/second, response time p95.", validation: "Baseline metrics documented" },
-      { step: 2, title: "Configure Auto-Scaling", description: "Set up scaling rules: scale up at 75% CPU, scale down at 25% CPU.", validation: "Auto-scaling rules configured" },
-      { step: 3, title: "Load Test", description: "Run gradual load test from 100 to 1000 concurrent users.", validation: "Scaling triggered and verified" },
-      { step: 4, title: "Verify Isolation", description: "During load, verify Cardinal Axiom — no cross-user data leaks under stress.", validation: "Isolation maintained under load" },
+      {
+        step: 1,
+        title: "Baseline Performance",
+        description:
+          "Measure current server capacity: requests/second, response time p95.",
+        validation: "Baseline metrics documented",
+      },
+      {
+        step: 2,
+        title: "Configure Auto-Scaling",
+        description:
+          "Set up scaling rules: scale up at 75% CPU, scale down at 25% CPU.",
+        validation: "Auto-scaling rules configured",
+      },
+      {
+        step: 3,
+        title: "Load Test",
+        description: "Run gradual load test from 100 to 1000 concurrent users.",
+        validation: "Scaling triggered and verified",
+      },
+      {
+        step: 4,
+        title: "Verify Isolation",
+        description:
+          "During load, verify Cardinal Axiom — no cross-user data leaks under stress.",
+        validation: "Isolation maintained under load",
+      },
     ]),
-    objectives: "Ensure VIGIL can scale under load while maintaining per-user isolation.",
+    objectives:
+      "Ensure VIGIL can scale under load while maintaining per-user isolation.",
     points: 90,
     estimatedMinutes: 40,
   },
   {
     title: "Log Sanitization Audit",
-    description: "Audit application and infrastructure logs to ensure no user content appears in system-level logs.",
+    description:
+      "Audit application and infrastructure logs to ensure no user content appears in system-level logs.",
     category: "monitoring" as const,
     difficulty: "intermediate" as const,
     steps: JSON.stringify([
-      { step: 1, title: "Collect Log Samples", description: "Gather samples from application logs, error logs, access logs, and database logs.", validation: "Log samples collected from all sources" },
-      { step: 2, title: "Scan for User Content", description: "Search logs for patterns matching user data: reflection content, callsigns, personal info.", validation: "Scan complete, findings documented" },
-      { step: 3, title: "Remediate Findings", description: "Fix any logging code that outputs user content. Implement sanitization filters.", validation: "All user content removed from log output" },
-      { step: 4, title: "Verify and Document", description: "Re-scan after fixes. Document log sanitization procedures.", validation: "Clean scan confirmed, procedures documented" },
+      {
+        step: 1,
+        title: "Collect Log Samples",
+        description:
+          "Gather samples from application logs, error logs, access logs, and database logs.",
+        validation: "Log samples collected from all sources",
+      },
+      {
+        step: 2,
+        title: "Scan for User Content",
+        description:
+          "Search logs for patterns matching user data: reflection content, callsigns, personal info.",
+        validation: "Scan complete, findings documented",
+      },
+      {
+        step: 3,
+        title: "Remediate Findings",
+        description:
+          "Fix any logging code that outputs user content. Implement sanitization filters.",
+        validation: "All user content removed from log output",
+      },
+      {
+        step: 4,
+        title: "Verify and Document",
+        description:
+          "Re-scan after fixes. Document log sanitization procedures.",
+        validation: "Clean scan confirmed, procedures documented",
+      },
     ]),
-    objectives: "Ensure Cardinal Axiom compliance at the logging level — no user content in infrastructure logs.",
+    objectives:
+      "Ensure Cardinal Axiom compliance at the logging level — no user content in infrastructure logs.",
     points: 85,
     estimatedMinutes: 35,
   },
   {
     title: "Cloudflare WAF Configuration",
-    description: "Configure Cloudflare Web Application Firewall for VIGIL with custom rules that protect without compromising user privacy.",
+    description:
+      "Configure Cloudflare Web Application Firewall for VIGIL with custom rules that protect without compromising user privacy.",
     category: "networking" as const,
     difficulty: "intermediate" as const,
     steps: JSON.stringify([
-      { step: 1, title: "Enable OWASP Rules", description: "Activate the OWASP ModSecurity Core Rule Set in Cloudflare WAF.", validation: "OWASP rules active" },
-      { step: 2, title: "Configure Rate Limiting", description: "Set rate limits per IP: 100 requests/minute for API, 30/minute for auth endpoints.", validation: "Rate limiting rules active" },
-      { step: 3, title: "Custom Rules for VIGIL", description: "Create rules to block common attack patterns while ensuring WAF does not log request bodies (Cardinal Axiom).", validation: "Custom rules active, no body logging" },
-      { step: 4, title: "Test and Verify", description: "Test rules with simulated attacks. Verify legitimate traffic is not blocked.", validation: "Rules effective, no false positives" },
+      {
+        step: 1,
+        title: "Enable OWASP Rules",
+        description:
+          "Activate the OWASP ModSecurity Core Rule Set in Cloudflare WAF.",
+        validation: "OWASP rules active",
+      },
+      {
+        step: 2,
+        title: "Configure Rate Limiting",
+        description:
+          "Set rate limits per IP: 100 requests/minute for API, 30/minute for auth endpoints.",
+        validation: "Rate limiting rules active",
+      },
+      {
+        step: 3,
+        title: "Custom Rules for VIGIL",
+        description:
+          "Create rules to block common attack patterns while ensuring WAF does not log request bodies (Cardinal Axiom).",
+        validation: "Custom rules active, no body logging",
+      },
+      {
+        step: 4,
+        title: "Test and Verify",
+        description:
+          "Test rules with simulated attacks. Verify legitimate traffic is not blocked.",
+        validation: "Rules effective, no false positives",
+      },
     ]),
-    objectives: "Configure WAF protection that secures VIGIL without violating user privacy axioms.",
+    objectives:
+      "Configure WAF protection that secures VIGIL without violating user privacy axioms.",
     points: 75,
     estimatedMinutes: 35,
   },
 ];
-
 
 // ══════════════════════════════════════════════════════════════
 // SEED MUTATION
@@ -3592,7 +4339,7 @@ const ADDITIONAL_INFRA_SCENARIOS = [
 
 export const seedTrainingContent = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
@@ -3660,7 +4407,11 @@ export const seedTrainingContent = mutation({
     const existingInfra = await ctx.db.query("infraScenarios").collect();
     if (existingInfra.length < 10) {
       for (const sc of ADDITIONAL_INFRA_SCENARIOS) {
-        await ctx.db.insert("infraScenarios", { ...sc, isPublished: true, createdAt: Date.now() });
+        await ctx.db.insert("infraScenarios", {
+          ...sc,
+          isPublished: true,
+          createdAt: Date.now(),
+        });
       }
     }
 

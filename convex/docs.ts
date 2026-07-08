@@ -1,6 +1,6 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
 // ─── DOCUMENTATION ───
 
@@ -10,7 +10,9 @@ export const listDocuments = query({
     if (args.category) {
       return await ctx.db
         .query("documents")
-        .withIndex("by_category", (q) => q.eq("category", args.category as "founder_doctrine"))
+        .withIndex("by_category", q =>
+          q.eq("category", args.category as "founder_doctrine"),
+        )
         .collect();
     }
     return await ctx.db.query("documents").collect();
@@ -36,9 +38,14 @@ export const createDocument = mutation({
     title: v.string(),
     content: v.string(),
     category: v.union(
-      v.literal("founder_doctrine"), v.literal("technical"), v.literal("architecture"),
-      v.literal("validation_reports"), v.literal("academy_handbook"), v.literal("instructor_manual"),
-      v.literal("student_workbook"), v.literal("release_notes")
+      v.literal("founder_doctrine"),
+      v.literal("technical"),
+      v.literal("architecture"),
+      v.literal("validation_reports"),
+      v.literal("academy_handbook"),
+      v.literal("instructor_manual"),
+      v.literal("student_workbook"),
+      v.literal("release_notes"),
     ),
     version: v.string(),
     fileId: v.optional(v.id("_storage")),
@@ -81,7 +88,9 @@ export const updateDocument = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     const { documentId, ...updates } = args;
-    const filtered = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
+    const filtered = Object.fromEntries(
+      Object.entries(updates).filter(([, v]) => v !== undefined),
+    );
     await ctx.db.patch(documentId, { ...filtered, updatedAt: Date.now() });
   },
 });
@@ -103,7 +112,7 @@ export const deleteDocument = mutation({
 // Generate a URL for the client to upload a file to Convex storage
 export const generateUploadUrl = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     return await ctx.storage.generateUploadUrl();
@@ -120,7 +129,7 @@ export const getFileUrl = query({
 
 export const getStats = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const docs = await ctx.db.query("documents").collect();
     const categories = new Map<string, number>();
     for (const doc of docs) {

@@ -1,17 +1,17 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
 // ─── CERTIFICATIONS ───
 
 export const getMyCertifications = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
     return await ctx.db
       .query("certifications")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
   },
 });
@@ -20,8 +20,12 @@ export const issueCertification = mutation({
   args: {
     studentId: v.id("users"),
     type: v.union(
-      v.literal("sql"), v.literal("infrastructure"), v.literal("mirror_operator"),
-      v.literal("peer_support"), v.literal("vigil_operator"), v.literal("vigil_instructor")
+      v.literal("sql"),
+      v.literal("infrastructure"),
+      v.literal("mirror_operator"),
+      v.literal("peer_support"),
+      v.literal("vigil_operator"),
+      v.literal("vigil_instructor"),
     ),
     courseId: v.optional(v.id("courses")),
   },
@@ -54,44 +58,48 @@ export const revokeCertification = mutation({
 
 export const getProgress = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
     const enrollments = await ctx.db
       .query("enrollments")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
     const certs = await ctx.db
       .query("certifications")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
     const examAttempts = await ctx.db
       .query("examAttempts")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
     const sqlSubs = await ctx.db
       .query("sqlSubmissions")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
     const infraAttempts = await ctx.db
       .query("infraAttempts")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
     const reviews = await ctx.db
       .query("instructorReviews")
-      .withIndex("by_student", (q) => q.eq("studentId", userId))
+      .withIndex("by_student", q => q.eq("studentId", userId))
       .collect();
 
     return {
-      completedCourses: enrollments.filter((e) => e.status === "completed" || e.status === "certified").length,
+      completedCourses: enrollments.filter(
+        e => e.status === "completed" || e.status === "certified",
+      ).length,
       totalEnrollments: enrollments.length,
-      activeCerts: certs.filter((c) => c.status === "active").length,
+      activeCerts: certs.filter(c => c.status === "active").length,
       totalCerts: certs.length,
-      examsPassed: examAttempts.filter((a) => a.passed).length,
-      sqlPassed: new Set(sqlSubs.filter((s) => s.passed).map((s) => s.challengeId)).size,
-      infraCompleted: infraAttempts.filter((a) => a.status === "completed").length,
+      examsPassed: examAttempts.filter(a => a.passed).length,
+      sqlPassed: new Set(sqlSubs.filter(s => s.passed).map(s => s.challengeId))
+        .size,
+      infraCompleted: infraAttempts.filter(a => a.status === "completed")
+        .length,
       instructorReviews: reviews.length,
-      passedReviews: reviews.filter((r) => r.grade !== "fail").length,
+      passedReviews: reviews.filter(r => r.grade !== "fail").length,
     };
   },
 });
@@ -100,7 +108,7 @@ export const getProgress = query({
 
 export const listExams = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     return await ctx.db.query("exams").collect();
   },
 });
@@ -148,12 +156,12 @@ export const submitExam = mutation({
 
 export const getMyExamAttempts = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
     return await ctx.db
       .query("examAttempts")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
   },
 });

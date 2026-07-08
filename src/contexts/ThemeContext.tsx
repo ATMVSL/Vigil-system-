@@ -2,7 +2,14 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
 
-export type ColorScheme = "vigil-green" | "vigil-amber" | "vigil-blue" | "vigil-red" | "vigil-slate" | "vigil-purple" | "vigil-ember";
+export type ColorScheme =
+  | "vigil-green"
+  | "vigil-amber"
+  | "vigil-blue"
+  | "vigil-red"
+  | "vigil-slate"
+  | "vigil-purple"
+  | "vigil-ember";
 
 interface ThemeContextType {
   theme: Theme;
@@ -46,7 +53,18 @@ export function ThemeProvider({
 
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
     const stored = localStorage.getItem("vigil-color-scheme");
-    if (stored && ["vigil-green", "vigil-amber", "vigil-blue", "vigil-red", "vigil-slate", "vigil-purple", "vigil-ember"].includes(stored)) {
+    if (
+      stored &&
+      [
+        "vigil-green",
+        "vigil-amber",
+        "vigil-blue",
+        "vigil-red",
+        "vigil-slate",
+        "vigil-purple",
+        "vigil-ember",
+      ].includes(stored)
+    ) {
       return stored as ColorScheme;
     }
     return "vigil-green";
@@ -94,7 +112,9 @@ export function ThemeProvider({
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, switchable, colorScheme, setColorScheme }}>
+    <ThemeContext.Provider
+      value={{ theme, toggleTheme, switchable, colorScheme, setColorScheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );

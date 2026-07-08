@@ -103,13 +103,16 @@ function SidebarNav() {
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {coreNavItems.map((item) => (
+            {coreNavItems.map(item => (
               <NavLink
                 key={item.href}
                 href={item.href}
                 label={item.label}
                 icon={item.icon}
-                isActive={location.pathname === item.href || location.pathname.startsWith(item.href + "/")}
+                isActive={
+                  location.pathname === item.href ||
+                  location.pathname.startsWith(`${item.href}/`)
+                }
               />
             ))}
           </SidebarMenu>
@@ -121,13 +124,16 @@ function SidebarNav() {
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {academyNavItems.map((item) => (
+            {academyNavItems.map(item => (
               <NavLink
                 key={item.href}
                 href={item.href}
                 label={item.label}
                 icon={item.icon}
-                isActive={location.pathname === item.href || location.pathname.startsWith(item.href + "/")}
+                isActive={
+                  location.pathname === item.href ||
+                  location.pathname.startsWith(`${item.href}/`)
+                }
               />
             ))}
           </SidebarMenu>
@@ -139,13 +145,16 @@ function SidebarNav() {
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {systemNavItems.map((item) => (
+            {systemNavItems.map(item => (
               <NavLink
                 key={item.href}
                 href={item.href}
                 label={item.label}
                 icon={item.icon}
-                isActive={location.pathname === item.href || location.pathname.startsWith(item.href + "/")}
+                isActive={
+                  location.pathname === item.href ||
+                  location.pathname.startsWith(`${item.href}/`)
+                }
               />
             ))}
           </SidebarMenu>
@@ -234,7 +243,9 @@ function SidebarHeaderContent() {
           <Eye className="size-5 text-primary" />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-base tracking-widest">{APP_NAME}</span>
+          <span className="font-bold text-base tracking-widest">
+            {APP_NAME}
+          </span>
           <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Mirror Systems
           </span>

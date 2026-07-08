@@ -1,6 +1,6 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
 const categoryValidator = v.union(
   v.literal("self_doctrine"),
@@ -8,7 +8,7 @@ const categoryValidator = v.union(
   v.literal("cognitive_loop"),
   v.literal("sql_training"),
   v.literal("infrastructure"),
-  v.literal("certification")
+  v.literal("certification"),
 );
 
 export const listCourses = query({
@@ -19,32 +19,31 @@ export const listCourses = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    let q;
-    if (category) {
-      q = ctx.db.query("courses").withIndex("by_category", (idx) => idx.eq("category", category));
-    } else {
-      q = ctx.db.query("courses");
-    }
+    const q = category
+      ? ctx.db
+          .query("courses")
+          .withIndex("by_category", idx => idx.eq("category", category))
+      : ctx.db.query("courses");
     return await q.collect();
   },
 });
 
 export const getMyEnrollments = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
     const enrollments = await ctx.db
       .query("enrollments")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
 
     const enriched = await Promise.all(
-      enrollments.map(async (enrollment) => {
+      enrollments.map(async enrollment => {
         const course = await ctx.db.get(enrollment.courseId);
         return { ...enrollment, course };
-      })
+      }),
     );
     return enriched;
   },
@@ -55,7 +54,11 @@ export const createCourse = mutation({
     title: v.string(),
     description: v.string(),
     category: categoryValidator,
-    difficulty: v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced")),
+    difficulty: v.union(
+      v.literal("beginner"),
+      v.literal("intermediate"),
+      v.literal("advanced"),
+    ),
     lessonsCount: v.number(),
     estimatedHours: v.number(),
   },
@@ -89,8 +92,8 @@ export const enroll = mutation({
 
     const existing = await ctx.db
       .query("enrollments")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("courseId"), courseId))
+      .withIndex("by_user", q => q.eq("userId", userId))
+      .filter(q => q.eq(q.field("courseId"), courseId))
       .first();
 
     if (existing) throw new Error("Already enrolled");
@@ -137,7 +140,11 @@ export const updateProgress = mutation({
       progress: clampedProgress,
     };
 
-    if (clampedProgress >= 100 && enrollment.status !== "completed" && enrollment.status !== "certified") {
+    if (
+      clampedProgress >= 100 &&
+      enrollment.status !== "completed" &&
+      enrollment.status !== "certified"
+    ) {
       updates.status = "completed";
       updates.completedAt = Date.now();
     } else if (clampedProgress > 0 && enrollment.status === "enrolled") {

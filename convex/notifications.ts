@@ -1,5 +1,5 @@
-import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
+import { internalAction } from "./_generated/server";
 import { APP_NAME } from "./constants";
 
 declare const process: { env: Record<string, string | undefined> };
@@ -23,7 +23,9 @@ export const notifyFounderNewApplicant = internalAction({
     const projectSecret = process.env.VIKTOR_SPACES_PROJECT_SECRET;
 
     if (!apiUrl || !projectName || !projectSecret) {
-      console.error("Viktor Spaces email env vars not configured — skipping notification");
+      console.error(
+        "Viktor Spaces email env vars not configured — skipping notification",
+      );
       return;
     }
 
@@ -95,7 +97,9 @@ export const notifyApplicantDecision = internalAction({
     const projectSecret = process.env.VIKTOR_SPACES_PROJECT_SECRET;
 
     if (!apiUrl || !projectName || !projectSecret) {
-      console.error("Viktor Spaces email env vars not configured — skipping notification");
+      console.error(
+        "Viktor Spaces email env vars not configured — skipping notification",
+      );
       return;
     }
 

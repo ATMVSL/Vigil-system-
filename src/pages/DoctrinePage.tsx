@@ -16,12 +16,7 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
@@ -47,14 +42,52 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "../../convex/_generated/api";
 
-const sectionLabels: Record<string, { label: string; subtitle: string; icon: React.ReactNode; color: string }> = {
-  axiom: { label: "Immutable Axioms", subtitle: "Sovereign. Inviolable.", icon: <Lock className="size-4" />, color: "text-destructive" },
-  structure: { label: "Structure", subtitle: "SPC Gonzales", icon: <Shield className="size-4" />, color: "text-chart-1" },
-  endurance: { label: "Endurance", subtitle: "SPC Hargis", icon: <Mountain className="size-4" />, color: "text-chart-3" },
-  legacy: { label: "Legacy", subtitle: "SPC Shaw", icon: <Star className="size-4" />, color: "text-chart-2" },
-  fortitude: { label: "Fortitude", subtitle: "SGT Stampley", icon: <Flame className="size-4" />, color: "text-chart-5" },
-  continuity_pillar: { label: "Continuity", subtitle: "SPC Luna", icon: <Anchor className="size-4" />, color: "text-chart-4" },
-  presence: { label: "Presence", subtitle: "SGT Walker", icon: <Heart className="size-4" />, color: "text-primary" },
+const sectionLabels: Record<
+  string,
+  { label: string; subtitle: string; icon: React.ReactNode; color: string }
+> = {
+  axiom: {
+    label: "Immutable Axioms",
+    subtitle: "Sovereign. Inviolable.",
+    icon: <Lock className="size-4" />,
+    color: "text-destructive",
+  },
+  structure: {
+    label: "Structure",
+    subtitle: "SPC Gonzales",
+    icon: <Shield className="size-4" />,
+    color: "text-chart-1",
+  },
+  endurance: {
+    label: "Endurance",
+    subtitle: "SPC Hargis",
+    icon: <Mountain className="size-4" />,
+    color: "text-chart-3",
+  },
+  legacy: {
+    label: "Legacy",
+    subtitle: "SPC Shaw",
+    icon: <Star className="size-4" />,
+    color: "text-chart-2",
+  },
+  fortitude: {
+    label: "Fortitude",
+    subtitle: "SGT Stampley",
+    icon: <Flame className="size-4" />,
+    color: "text-chart-5",
+  },
+  continuity_pillar: {
+    label: "Continuity",
+    subtitle: "SPC Luna",
+    icon: <Anchor className="size-4" />,
+    color: "text-chart-4",
+  },
+  presence: {
+    label: "Presence",
+    subtitle: "SGT Walker",
+    icon: <Heart className="size-4" />,
+    color: "text-primary",
+  },
 };
 
 const priorityStyles: Record<string, string> = {
@@ -80,7 +113,14 @@ function NewDoctrineDialog() {
       await create({
         title: title.trim(),
         content: content.trim(),
-        section: section as "axiom" | "structure" | "endurance" | "legacy" | "fortitude" | "continuity_pillar" | "presence",
+        section: section as
+          | "axiom"
+          | "structure"
+          | "endurance"
+          | "legacy"
+          | "fortitude"
+          | "continuity_pillar"
+          | "presence",
         priority: priority as "critical" | "standard" | "advisory",
       });
       setTitle("");
@@ -113,7 +153,7 @@ function NewDoctrineDialog() {
             <Label>Title</Label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               placeholder="Article title..."
             />
           </div>
@@ -126,12 +166,22 @@ function NewDoctrineDialog() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="axiom">Immutable Axiom</SelectItem>
-                  <SelectItem value="structure">Structure (SPC Gonzales)</SelectItem>
-                  <SelectItem value="endurance">Endurance (SPC Hargis)</SelectItem>
+                  <SelectItem value="structure">
+                    Structure (SPC Gonzales)
+                  </SelectItem>
+                  <SelectItem value="endurance">
+                    Endurance (SPC Hargis)
+                  </SelectItem>
                   <SelectItem value="legacy">Legacy (SPC Shaw)</SelectItem>
-                  <SelectItem value="fortitude">Fortitude (SGT Stampley)</SelectItem>
-                  <SelectItem value="continuity_pillar">Continuity (SPC Luna)</SelectItem>
-                  <SelectItem value="presence">Presence (SGT Walker)</SelectItem>
+                  <SelectItem value="fortitude">
+                    Fortitude (SGT Stampley)
+                  </SelectItem>
+                  <SelectItem value="continuity_pillar">
+                    Continuity (SPC Luna)
+                  </SelectItem>
+                  <SelectItem value="presence">
+                    Presence (SGT Walker)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -153,13 +203,25 @@ function NewDoctrineDialog() {
             <Label>Content</Label>
             <Textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={e => setContent(e.target.value)}
               placeholder="Doctrine content..."
               rows={5}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={!title.trim() || !content.trim() || !section || !priority || loading}>
-            {loading ? <RefreshCw className="size-4 mr-2 animate-spin" /> : null}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={
+              !title.trim() ||
+              !content.trim() ||
+              !section ||
+              !priority ||
+              loading
+            }
+          >
+            {loading ? (
+              <RefreshCw className="size-4 mr-2 animate-spin" />
+            ) : null}
             Create Article
           </Button>
         </form>
@@ -173,17 +235,32 @@ export function DoctrinePage() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   if (articles === undefined) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading doctrine...</div>;
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        Loading doctrine...
+      </div>
+    );
   }
 
   // Group articles by section
-  const grouped = articles.reduce<Record<string, typeof articles>>((acc, article) => {
-    if (!acc[article.section]) acc[article.section] = [];
-    acc[article.section].push(article);
-    return acc;
-  }, {});
+  const grouped = articles.reduce<Record<string, typeof articles>>(
+    (acc, article) => {
+      if (!acc[article.section]) acc[article.section] = [];
+      acc[article.section].push(article);
+      return acc;
+    },
+    {},
+  );
 
-  const sectionOrder = ["axiom", "structure", "endurance", "legacy", "fortitude", "continuity_pillar", "presence"];
+  const sectionOrder = [
+    "axiom",
+    "structure",
+    "endurance",
+    "legacy",
+    "fortitude",
+    "continuity_pillar",
+    "presence",
+  ];
 
   return (
     <div className="space-y-6">
@@ -191,7 +268,8 @@ export function DoctrinePage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">SELF Doctrine</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Governing principles for intentional living • {articles.length} articles
+            Governing principles for intentional living • {articles.length}{" "}
+            articles
           </p>
         </div>
         <NewDoctrineDialog />
@@ -207,20 +285,24 @@ export function DoctrinePage() {
             </p>
           </div>
           <p className="text-xs text-muted-foreground">
-            Each pillar is named for a service member. Together with Continuity and Presence, they form the doctrine that governs VIGIL's approach to veteran identity preservation.
+            Each pillar is named for a service member. Together with Continuity
+            and Presence, they form the doctrine that governs VIGIL's approach
+            to veteran identity preservation.
           </p>
         </CardContent>
       </Card>
 
       {/* Section overview */}
       <div className="grid gap-2 sm:grid-cols-4 lg:grid-cols-7">
-        {sectionOrder.map((section) => {
+        {sectionOrder.map(section => {
           const info = sectionLabels[section];
           const count = grouped[section]?.length ?? 0;
           return (
             <button
               key={section}
-              onClick={() => setActiveSection(activeSection === section ? null : section)}
+              onClick={() =>
+                setActiveSection(activeSection === section ? null : section)
+              }
               className={`flex flex-col gap-1 p-3 rounded-md border transition-colors text-left ${
                 activeSection === section
                   ? "border-primary/40 bg-primary/5"
@@ -229,7 +311,9 @@ export function DoctrinePage() {
             >
               <span className={info.color}>{info.icon}</span>
               <p className="text-xs font-medium">{info.label}</p>
-              <p className="text-[10px] text-muted-foreground">{info.subtitle}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {info.subtitle}
+              </p>
               <p className="text-lg font-bold">{count}</p>
             </button>
           );
@@ -238,7 +322,7 @@ export function DoctrinePage() {
 
       {/* Articles */}
       <div className="space-y-3">
-        {sectionOrder.map((section) => {
+        {sectionOrder.map(section => {
           const sectionArticles = grouped[section] || [];
           if (sectionArticles.length === 0) return null;
           if (activeSection && activeSection !== section) return null;
@@ -248,14 +332,18 @@ export function DoctrinePage() {
             <div key={section}>
               <div className="flex items-center gap-2 mb-3">
                 <span className={info.color}>{info.icon}</span>
-                <h2 className="text-sm font-semibold uppercase tracking-wider">{info.label}</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wider">
+                  {info.label}
+                </h2>
                 {info.subtitle !== "Sovereign. Inviolable." && (
-                  <span className="text-xs text-muted-foreground">— {info.subtitle}</span>
+                  <span className="text-xs text-muted-foreground">
+                    — {info.subtitle}
+                  </span>
                 )}
                 <div className="flex-1 h-px bg-border" />
               </div>
               <div className="space-y-2">
-                {sectionArticles.map((article) => (
+                {sectionArticles.map(article => (
                   <Collapsible key={article._id}>
                     <Card>
                       <CollapsibleTrigger asChild>
@@ -300,7 +388,8 @@ export function DoctrinePage() {
           <CardContent className="py-12 text-center">
             <BookOpen className="size-12 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">
-              No doctrine articles yet. The SELF Doctrine will be seeded on first load.
+              No doctrine articles yet. The SELF Doctrine will be seeded on
+              first load.
             </p>
           </CardContent>
         </Card>

@@ -1,6 +1,6 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
 // ─── COMMUNITY POSTS ───
 
@@ -10,7 +10,9 @@ export const listPosts = query({
     const posts = args.category
       ? await ctx.db
           .query("communityPosts")
-          .withIndex("by_category", (q) => q.eq("category", args.category as "general"))
+          .withIndex("by_category", q =>
+            q.eq("category", args.category as "general"),
+          )
           .collect()
       : await ctx.db.query("communityPosts").collect();
 
@@ -22,10 +24,14 @@ export const listPosts = query({
 
     // Enrich with user info
     const enriched = await Promise.all(
-      sorted.map(async (post) => {
+      sorted.map(async post => {
         const user = await ctx.db.get(post.userId);
-        return { ...post, userName: user?.name || "Unknown", userEmail: user?.email };
-      })
+        return {
+          ...post,
+          userName: user?.name || "Unknown",
+          userEmail: user?.email,
+        };
+      }),
     );
     return enriched;
   },
@@ -39,13 +45,13 @@ export const getPost = query({
     const user = await ctx.db.get(post.userId);
     const replies = await ctx.db
       .query("communityReplies")
-      .withIndex("by_post", (q) => q.eq("postId", args.postId))
+      .withIndex("by_post", q => q.eq("postId", args.postId))
       .collect();
     const enrichedReplies = await Promise.all(
-      replies.map(async (reply) => {
+      replies.map(async reply => {
         const replyUser = await ctx.db.get(reply.userId);
         return { ...reply, userName: replyUser?.name || "Unknown" };
-      })
+      }),
     );
     return {
       ...post,
@@ -60,8 +66,12 @@ export const createPost = mutation({
     title: v.string(),
     content: v.string(),
     category: v.union(
-      v.literal("general"), v.literal("peer_support"), v.literal("study_group"),
-      v.literal("doctrine_discussion"), v.literal("technical_help"), v.literal("announcements")
+      v.literal("general"),
+      v.literal("peer_support"),
+      v.literal("study_group"),
+      v.literal("doctrine_discussion"),
+      v.literal("technical_help"),
+      v.literal("announcements"),
     ),
   },
   handler: async (ctx, args) => {

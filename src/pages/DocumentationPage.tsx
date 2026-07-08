@@ -3,8 +3,11 @@ import {
   BookOpen,
   ChevronRight,
   Download,
+  File,
+  FileSpreadsheet,
   FileText,
   GraduationCap,
+  Image as ImageIcon,
   Paperclip,
   Plus,
   ScrollText,
@@ -13,9 +16,6 @@ import {
   Upload,
   Wrench,
   X,
-  File,
-  Image as ImageIcon,
-  FileSpreadsheet,
 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +58,10 @@ const categoryLabels: Record<string, string> = {
   release_notes: "Release Notes",
 };
 
-const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+const categoryIcons: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   founder_doctrine: Shield,
   technical: Wrench,
   architecture: FileText,
@@ -78,7 +81,12 @@ function formatFileSize(bytes: number): string {
 function getFileIcon(fileType: string | undefined) {
   if (!fileType) return File;
   if (fileType.startsWith("image/")) return ImageIcon;
-  if (fileType.includes("spreadsheet") || fileType.includes("excel") || fileType.includes("csv")) return FileSpreadsheet;
+  if (
+    fileType.includes("spreadsheet") ||
+    fileType.includes("excel") ||
+    fileType.includes("csv")
+  )
+    return FileSpreadsheet;
   if (fileType.includes("pdf")) return FileText;
   return File;
 }
@@ -87,36 +95,54 @@ export function DocumentationPage() {
   const [selectedId, setSelectedId] = useState<Id<"documents"> | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("");
   const [newDocOpen, setNewDocOpen] = useState(false);
-  const [newDoc, setNewDoc] = useState({ title: "", content: "", category: "technical", version: "1.0" });
+  const [newDoc, setNewDoc] = useState({
+    title: "",
+    content: "",
+    category: "technical",
+    version: "1.0",
+  });
   const [uploadingFile, setUploadingFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const documents = useQuery(api.docs.listDocuments, categoryFilter ? { category: categoryFilter } : {});
+  const documents = useQuery(
+    api.docs.listDocuments,
+    categoryFilter ? { category: categoryFilter } : {},
+  );
   const stats = useQuery(api.docs.getStats);
-  const selectedDoc = useQuery(api.docs.getDocument, selectedId ? { documentId: selectedId } : "skip");
+  const selectedDoc = useQuery(
+    api.docs.getDocument,
+    selectedId ? { documentId: selectedId } : "skip",
+  );
   const myProfile = useQuery(api.roles.getMyProfile);
-  const isFounder = myProfile && "role" in myProfile && myProfile.role === "founder";
+  const isFounder =
+    myProfile && "role" in myProfile && myProfile.role === "founder";
   const createDocument = useMutation(api.docs.createDocument);
   const deleteDocument = useMutation(api.docs.deleteDocument);
   const generateUploadUrl = useMutation(api.docs.generateUploadUrl);
 
-  const handleFileSelect = useCallback((file: File) => {
-    setUploadingFile(file);
-    // Auto-fill title from filename if empty
-    if (!newDoc.title) {
-      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-      setNewDoc(prev => ({ ...prev, title: nameWithoutExt }));
-    }
-  }, [newDoc.title]);
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      setUploadingFile(file);
+      // Auto-fill title from filename if empty
+      if (!newDoc.title) {
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+        setNewDoc(prev => ({ ...prev, title: nameWithoutExt }));
+      }
+    },
+    [newDoc.title],
+  );
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFileSelect(file);
-  }, [handleFileSelect]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileSelect(file);
+    },
+    [handleFileSelect],
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -153,7 +179,9 @@ export function DocumentationPage() {
 
       await createDocument({
         title: newDoc.title,
-        content: newDoc.content || (uploadingFile ? `Uploaded file: ${uploadingFile.name}` : ""),
+        content:
+          newDoc.content ||
+          (uploadingFile ? `Uploaded file: ${uploadingFile.name}` : ""),
         category: newDoc.category as "technical",
         version: newDoc.version,
         fileId,
@@ -162,7 +190,12 @@ export function DocumentationPage() {
         fileSize,
       });
 
-      setNewDoc({ title: "", content: "", category: "technical", version: "1.0" });
+      setNewDoc({
+        title: "",
+        content: "",
+        category: "technical",
+        version: "1.0",
+      });
       setUploadingFile(null);
       setNewDocOpen(false);
     } finally {
@@ -191,130 +224,185 @@ export function DocumentationPage() {
               {stats.total} documents
             </Badge>
           )}
-          {isFounder && <Dialog open={newDocOpen} onOpenChange={setNewDocOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="size-4" /> New Document
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Create Document</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {/* File Upload Drop Zone */}
-                <div
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-                    dragOver
-                      ? "border-primary bg-primary/10"
-                      : uploadingFile
-                      ? "border-primary/40 bg-primary/5"
-                      : "border-border/50 hover:border-primary/30 hover:bg-muted/30"
-                  }`}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileSelect(file);
+          {isFounder && (
+            <Dialog open={newDocOpen} onOpenChange={setNewDocOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus className="size-4" /> New Document
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Create Document</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {/* File Upload Drop Zone */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" || e.key === " ")
+                        fileInputRef.current?.click();
                     }}
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg,.gif,.svg,.mp4,.mp3,.zip,.json,.yaml,.yml"
-                  />
-                  {uploadingFile ? (
-                    <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Paperclip className="size-5 text-primary" />
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                      dragOver
+                        ? "border-primary bg-primary/10"
+                        : uploadingFile
+                          ? "border-primary/40 bg-primary/5"
+                          : "border-border/50 hover:border-primary/30 hover:bg-muted/30"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileSelect(file);
+                      }}
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg,.gif,.svg,.mp4,.mp3,.zip,.json,.yaml,.yml"
+                    />
+                    {uploadingFile ? (
+                      <div className="flex items-center gap-3">
+                        <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <Paperclip className="size-5 text-primary" />
+                        </div>
+                        <div className="text-left flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {uploadingFile.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(uploadingFile.size)} ·{" "}
+                            {uploadingFile.type || "unknown"}
+                          </p>
+                        </div>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setUploadingFile(null);
+                          }}
+                          className="p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X className="size-4" />
+                        </button>
                       </div>
-                      <div className="text-left flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{uploadingFile.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatFileSize(uploadingFile.size)} · {uploadingFile.type || "unknown"}</p>
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setUploadingFile(null); }}
-                        className="p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="size-8 mx-auto text-muted-foreground/40 mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        <span className="text-primary font-medium">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground/60 mt-1">
-                        PDF, Word, Excel, images, videos, code — any file type
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={newDoc.title}
-                    onChange={(e) => setNewDoc({ ...newDoc, title: e.target.value })}
-                    placeholder="Document title..."
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Category</Label>
-                    <Select value={newDoc.category} onValueChange={(v) => setNewDoc({ ...newDoc, category: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(categoryLabels).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    ) : (
+                      <>
+                        <Upload className="size-8 mx-auto text-muted-foreground/40 mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          <span className="text-primary font-medium">
+                            Click to upload
+                          </span>{" "}
+                          or drag and drop
+                        </p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">
+                          PDF, Word, Excel, images, videos, code — any file type
+                        </p>
+                      </>
+                    )}
                   </div>
+
                   <div>
-                    <Label>Version</Label>
+                    <Label>Title</Label>
                     <Input
-                      value={newDoc.version}
-                      onChange={(e) => setNewDoc({ ...newDoc, version: e.target.value })}
-                      placeholder="1.0"
+                      value={newDoc.title}
+                      onChange={e =>
+                        setNewDoc({ ...newDoc, title: e.target.value })
+                      }
+                      placeholder="Document title..."
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Category</Label>
+                      <Select
+                        value={newDoc.category}
+                        onValueChange={v =>
+                          setNewDoc({ ...newDoc, category: v })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(categoryLabels).map(([k, v]) => (
+                            <SelectItem key={k} value={k}>
+                              {v}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Version</Label>
+                      <Input
+                        value={newDoc.version}
+                        onChange={e =>
+                          setNewDoc({ ...newDoc, version: e.target.value })
+                        }
+                        placeholder="1.0"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Description / Content</Label>
+                    <Textarea
+                      value={newDoc.content}
+                      onChange={e =>
+                        setNewDoc({ ...newDoc, content: e.target.value })
+                      }
+                      placeholder={
+                        uploadingFile
+                          ? "Optional description for this file..."
+                          : "Document content..."
+                      }
+                      rows={6}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleCreate}
+                    disabled={!newDoc.title || isUploading}
+                    className="w-full gap-2"
+                  >
+                    {isUploading ? (
+                      <>Uploading...</>
+                    ) : uploadingFile ? (
+                      <>
+                        <Upload className="size-4" /> Upload & Create Document
+                      </>
+                    ) : (
+                      <>Create Document</>
+                    )}
+                  </Button>
                 </div>
-                <div>
-                  <Label>Description / Content</Label>
-                  <Textarea
-                    value={newDoc.content}
-                    onChange={(e) => setNewDoc({ ...newDoc, content: e.target.value })}
-                    placeholder={uploadingFile ? "Optional description for this file..." : "Document content..."}
-                    rows={6}
-                  />
-                </div>
-                <Button onClick={handleCreate} disabled={!newDoc.title || isUploading} className="w-full gap-2">
-                  {isUploading ? (
-                    <>Uploading...</>
-                  ) : uploadingFile ? (
-                    <><Upload className="size-4" /> Upload & Create Document</>
-                  ) : (
-                    <>Create Document</>
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>}
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
       {/* Category Filters */}
       <div className="flex gap-2 flex-wrap">
-        <Button variant={categoryFilter === "" ? "default" : "outline"} size="sm" className="text-xs" onClick={() => setCategoryFilter("")}>
+        <Button
+          variant={categoryFilter === "" ? "default" : "outline"}
+          size="sm"
+          className="text-xs"
+          onClick={() => setCategoryFilter("")}
+        >
           All
         </Button>
         {Object.entries(categoryLabels).map(([k, v]) => (
-          <Button key={k} variant={categoryFilter === k ? "default" : "outline"} size="sm" className="text-xs" onClick={() => setCategoryFilter(k)}>
+          <Button
+            key={k}
+            variant={categoryFilter === k ? "default" : "outline"}
+            size="sm"
+            className="text-xs"
+            onClick={() => setCategoryFilter(k)}
+          >
             {v}
           </Button>
         ))}
@@ -329,15 +417,19 @@ export function DocumentationPage() {
             <Card className="vigil-border">
               <CardContent className="py-8 text-center">
                 <FileText className="size-8 mx-auto text-muted-foreground/30 mb-2" />
-                <p className="text-xs text-muted-foreground">No documents yet.</p>
-                <p className="text-[10px] text-muted-foreground/60 mt-1">Click "New Document" to upload files or create content.</p>
+                <p className="text-xs text-muted-foreground">
+                  No documents yet.
+                </p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1">
+                  Click "New Document" to upload files or create content.
+                </p>
               </CardContent>
             </Card>
           ) : (
-            documents.map((doc) => {
+            documents.map(doc => {
               const Icon = doc.fileId
                 ? getFileIcon(doc.fileType ?? undefined)
-                : (categoryIcons[doc.category] || FileText);
+                : categoryIcons[doc.category] || FileText;
               return (
                 <Card
                   key={doc._id}
@@ -349,17 +441,24 @@ export function DocumentationPage() {
                       <Icon className="size-4 text-muted-foreground/60" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{doc.title}</p>
+                      <p className="text-sm font-medium truncate">
+                        {doc.title}
+                      </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Badge variant="outline" className="text-[8px]">
                           {categoryLabels[doc.category]}
                         </Badge>
                         {doc.fileName && (
                           <span className="text-[8px] text-primary/60 flex items-center gap-0.5">
-                            <Paperclip className="size-2.5" /> {doc.fileSize ? formatFileSize(doc.fileSize) : "file"}
+                            <Paperclip className="size-2.5" />{" "}
+                            {doc.fileSize
+                              ? formatFileSize(doc.fileSize)
+                              : "file"}
                           </span>
                         )}
-                        <span className="text-[9px] text-muted-foreground">v{doc.version}</span>
+                        <span className="text-[9px] text-muted-foreground">
+                          v{doc.version}
+                        </span>
                       </div>
                     </div>
                     <ChevronRight className="size-4 text-muted-foreground/30 shrink-0" />
@@ -380,7 +479,9 @@ export function DocumentationPage() {
                     <Badge variant="outline" className="text-[9px]">
                       {categoryLabels[selectedDoc.category]}
                     </Badge>
-                    <span className="text-[10px] text-muted-foreground">v{selectedDoc.version}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      v{selectedDoc.version}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     {selectedDoc.fileUrl && (
@@ -407,54 +508,73 @@ export function DocumentationPage() {
                 </div>
                 <CardTitle className="text-lg">{selectedDoc.title}</CardTitle>
                 <CardDescription className="text-xs">
-                  Last updated: {new Date(selectedDoc.updatedAt).toLocaleDateString()}
+                  Last updated:{" "}
+                  {new Date(selectedDoc.updatedAt).toLocaleDateString()}
                   {selectedDoc.fileName && (
                     <span className="ml-2 text-primary/60">
-                      <Paperclip className="size-3 inline mr-0.5" />{selectedDoc.fileName}
-                      {selectedDoc.fileSize ? ` (${formatFileSize(selectedDoc.fileSize)})` : ""}
+                      <Paperclip className="size-3 inline mr-0.5" />
+                      {selectedDoc.fileName}
+                      {selectedDoc.fileSize
+                        ? ` (${formatFileSize(selectedDoc.fileSize)})`
+                        : ""}
                     </span>
                   )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {/* File Preview */}
-                {selectedDoc.fileUrl && selectedDoc.fileType?.startsWith("image/") && (
-                  <div className="mb-4 rounded-lg overflow-hidden border border-border/30 bg-muted/20">
-                    <img
-                      src={selectedDoc.fileUrl}
-                      alt={selectedDoc.title}
-                      className="max-w-full max-h-[500px] object-contain mx-auto"
-                    />
-                  </div>
-                )}
-                {selectedDoc.fileUrl && selectedDoc.fileType === "application/pdf" && (
-                  <div className="mb-4 rounded-lg overflow-hidden border border-border/30">
-                    <iframe
-                      src={selectedDoc.fileUrl}
-                      className="w-full h-[600px]"
-                      title={selectedDoc.title}
-                    />
-                  </div>
-                )}
-                {selectedDoc.fileUrl && selectedDoc.fileType?.startsWith("video/") && (
-                  <div className="mb-4 rounded-lg overflow-hidden border border-border/30 bg-black">
-                    <video
-                      src={selectedDoc.fileUrl}
-                      controls
-                      className="max-w-full max-h-[500px] mx-auto"
-                    />
-                  </div>
-                )}
-                {selectedDoc.fileUrl && selectedDoc.fileType?.startsWith("audio/") && (
-                  <div className="mb-4 p-4 rounded-lg border border-border/30 bg-muted/20">
-                    <audio src={selectedDoc.fileUrl} controls className="w-full" />
-                  </div>
-                )}
+                {selectedDoc.fileUrl &&
+                  selectedDoc.fileType?.startsWith("image/") && (
+                    <div className="mb-4 rounded-lg overflow-hidden border border-border/30 bg-muted/20">
+                      <img
+                        src={selectedDoc.fileUrl}
+                        alt={selectedDoc.title}
+                        className="max-w-full max-h-[500px] object-contain mx-auto"
+                      />
+                    </div>
+                  )}
+                {selectedDoc.fileUrl &&
+                  selectedDoc.fileType === "application/pdf" && (
+                    <div className="mb-4 rounded-lg overflow-hidden border border-border/30">
+                      <iframe
+                        src={selectedDoc.fileUrl}
+                        className="w-full h-[600px]"
+                        title={selectedDoc.title}
+                      />
+                    </div>
+                  )}
+                {selectedDoc.fileUrl &&
+                  selectedDoc.fileType?.startsWith("video/") && (
+                    <div className="mb-4 rounded-lg overflow-hidden border border-border/30 bg-black">
+                      <video
+                        src={selectedDoc.fileUrl}
+                        controls
+                        className="max-w-full max-h-[500px] mx-auto"
+                      >
+                        <track kind="captions" />
+                      </video>
+                    </div>
+                  )}
+                {selectedDoc.fileUrl &&
+                  selectedDoc.fileType?.startsWith("audio/") && (
+                    <div className="mb-4 p-4 rounded-lg border border-border/30 bg-muted/20">
+                      <audio
+                        src={selectedDoc.fileUrl}
+                        controls
+                        className="w-full"
+                      >
+                        <track kind="captions" />
+                      </audio>
+                    </div>
+                  )}
 
                 {/* Text Content */}
                 <div className="prose prose-sm prose-invert max-w-none">
                   {selectedDoc.content.split("\n").map((line, i) => (
-                    <p key={i} className={`text-sm mb-2 ${line.startsWith("•") ? "pl-4" : ""}`}>
+                    <p
+                      key={i}
+                      className={`text-sm mb-2 ${line.startsWith("•") ? "pl-4" : ""}`}
+                    >
                       {line}
                     </p>
                   ))}
@@ -465,7 +585,9 @@ export function DocumentationPage() {
             <Card className="vigil-border">
               <CardContent className="py-20 text-center">
                 <BookOpen className="size-12 mx-auto text-muted-foreground/20 mb-4" />
-                <p className="text-muted-foreground">Select a document to read.</p>
+                <p className="text-muted-foreground">
+                  Select a document to read.
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Living documentation for the VIGIL platform.
                 </p>

@@ -12,10 +12,7 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -42,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { api } from "../../convex/_generated/api";
 
 const severityStyles: Record<string, string> = {
@@ -51,11 +48,30 @@ const severityStyles: Record<string, string> = {
   low: "bg-muted text-muted-foreground border-border",
 };
 
-const statusStyles: Record<string, { label: string; icon: React.ReactNode; class: string }> = {
-  active: { label: "Active", icon: <div className="size-2 rounded-full bg-chart-1" />, class: "text-chart-1" },
-  under_review: { label: "Under Review", icon: <Clock className="size-3" />, class: "text-chart-2" },
-  validated: { label: "Validated", icon: <CheckCircle2 className="size-3" />, class: "text-success" },
-  archived: { label: "Archived", icon: <FileText className="size-3" />, class: "text-muted-foreground" },
+const statusStyles: Record<
+  string,
+  { label: string; icon: React.ReactNode; class: string }
+> = {
+  active: {
+    label: "Active",
+    icon: <div className="size-2 rounded-full bg-chart-1" />,
+    class: "text-chart-1",
+  },
+  under_review: {
+    label: "Under Review",
+    icon: <Clock className="size-3" />,
+    class: "text-chart-2",
+  },
+  validated: {
+    label: "Validated",
+    icon: <CheckCircle2 className="size-3" />,
+    class: "text-success",
+  },
+  archived: {
+    label: "Archived",
+    icon: <FileText className="size-3" />,
+    class: "text-muted-foreground",
+  },
 };
 
 function formatDate(ts: number) {
@@ -78,13 +94,25 @@ function NewEvidenceDialog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim() || !category || !severity || !source.trim()) return;
+    if (
+      !title.trim() ||
+      !description.trim() ||
+      !category ||
+      !severity ||
+      !source.trim()
+    )
+      return;
     setLoading(true);
     try {
       await create({
         title: title.trim(),
         description: description.trim(),
-        category: category as "identity" | "continuity" | "doctrine" | "operational" | "behavioral",
+        category: category as
+          | "identity"
+          | "continuity"
+          | "doctrine"
+          | "operational"
+          | "behavioral",
         severity: severity as "low" | "medium" | "high" | "critical",
         source: source.trim(),
       });
@@ -111,7 +139,8 @@ function NewEvidenceDialog() {
         <DialogHeader>
           <DialogTitle>Record Evidence</DialogTitle>
           <DialogDescription>
-            Add a new entry to the evidence chain. All entries maintain immutable custody.
+            Add a new entry to the evidence chain. All entries maintain
+            immutable custody.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -119,7 +148,7 @@ function NewEvidenceDialog() {
             <Label>Title</Label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               placeholder="Evidence title..."
             />
           </div>
@@ -158,7 +187,7 @@ function NewEvidenceDialog() {
             <Label>Source</Label>
             <Input
               value={source}
-              onChange={(e) => setSource(e.target.value)}
+              onChange={e => setSource(e.target.value)}
               placeholder="Evidence source..."
             />
           </div>
@@ -166,13 +195,26 @@ function NewEvidenceDialog() {
             <Label>Description</Label>
             <Textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Detailed description..."
               rows={4}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={!title.trim() || !description.trim() || !category || !severity || !source.trim() || loading}>
-            {loading ? <RefreshCw className="size-4 mr-2 animate-spin" /> : null}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={
+              !title.trim() ||
+              !description.trim() ||
+              !category ||
+              !severity ||
+              !source.trim() ||
+              loading
+            }
+          >
+            {loading ? (
+              <RefreshCw className="size-4 mr-2 animate-spin" />
+            ) : null}
             Record Evidence
           </Button>
         </form>
@@ -184,23 +226,35 @@ function NewEvidenceDialog() {
 export function EvidencePage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const entries = useQuery(api.evidence.list,
+  const entries = useQuery(
+    api.evidence.list,
     filterCategory && filterCategory !== "all"
-      ? { category: filterCategory as "identity" | "continuity" | "doctrine" | "operational" | "behavioral" }
-      : {}
+      ? {
+          category: filterCategory as
+            | "identity"
+            | "continuity"
+            | "doctrine"
+            | "operational"
+            | "behavioral",
+        }
+      : {},
   );
   const updateStatus = useMutation(api.evidence.updateStatus);
 
   if (entries === undefined) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading evidence...</div>;
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        Loading evidence...
+      </div>
+    );
   }
 
   const filtered = searchQuery
     ? entries.filter(
-        (e) =>
+        e =>
           e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          e.source.toLowerCase().includes(searchQuery.toLowerCase())
+          e.source.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : entries;
 
@@ -223,7 +277,7 @@ export function EvidencePage() {
           <Input
             placeholder="Search evidence..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -249,7 +303,9 @@ export function EvidencePage() {
           <CardContent className="py-12 text-center">
             <FileText className="size-12 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">
-              {searchQuery ? "No evidence matches your search." : "No evidence entries yet. Create one to begin."}
+              {searchQuery
+                ? "No evidence matches your search."
+                : "No evidence entries yet. Create one to begin."}
             </p>
           </CardContent>
         </Card>
@@ -259,17 +315,31 @@ export function EvidencePage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs uppercase tracking-wider">Title</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Category</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Severity</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Status</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Source</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Date</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider">Actions</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Title
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Category
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Severity
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Status
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Source
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Date
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((entry) => {
+                {filtered.map(entry => {
                   const status = statusStyles[entry.status];
                   return (
                     <TableRow key={entry._id}>
@@ -282,7 +352,10 @@ export function EvidencePage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-[10px] uppercase">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] uppercase"
+                        >
                           {entry.category}
                         </Badge>
                       </TableCell>
@@ -291,12 +364,16 @@ export function EvidencePage() {
                           variant="outline"
                           className={`text-[10px] uppercase ${severityStyles[entry.severity]}`}
                         >
-                          {entry.severity === "critical" && <AlertTriangle className="size-3 mr-1" />}
+                          {entry.severity === "critical" && (
+                            <AlertTriangle className="size-3 mr-1" />
+                          )}
                           {entry.severity}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className={`flex items-center gap-1.5 text-xs ${status.class}`}>
+                        <div
+                          className={`flex items-center gap-1.5 text-xs ${status.class}`}
+                        >
                           {status.icon}
                           {status.label}
                         </div>
@@ -310,10 +387,14 @@ export function EvidencePage() {
                       <TableCell>
                         <Select
                           value={entry.status}
-                          onValueChange={(newStatus) =>
+                          onValueChange={newStatus =>
                             updateStatus({
                               entryId: entry._id,
-                              status: newStatus as "active" | "archived" | "under_review" | "validated",
+                              status: newStatus as
+                                | "active"
+                                | "archived"
+                                | "under_review"
+                                | "validated",
                             })
                           }
                         >

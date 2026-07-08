@@ -24,9 +24,10 @@ export function LandingPage() {
           Veteran Identity Garrison for Intentional Living
         </p>
         <p className="text-muted-foreground max-w-lg mx-auto mb-8 text-sm leading-relaxed">
-          A doctrine-driven, sovereign presence system that maintains continuity 
-          of identity, purpose, and accountability for veterans navigating 
-          military-to-civilian transition. Not therapy. Not a chatbot. A constant presence.
+          A doctrine-driven, sovereign presence system that maintains continuity
+          of identity, purpose, and accountability for veterans navigating
+          military-to-civilian transition. Not therapy. Not a chatbot. A
+          constant presence.
         </p>
         <div className="flex items-center justify-center gap-3">
           <Button asChild size="lg">
@@ -64,7 +65,7 @@ export function LandingPage() {
             title: "Academy",
             desc: "VIGIL-specific training in doctrine, mirror operations, and the cognitive loop",
           },
-        ].map((feature) => (
+        ].map(feature => (
           <div
             key={feature.title}
             className="p-4 rounded-md border border-border/50 bg-card/50"
@@ -85,7 +86,13 @@ export function LandingPage() {
           </p>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
-          {["Sovereignty", "No Probing", "No Override", "Continuity", "Cardinal"].map((axiom) => (
+          {[
+            "Sovereignty",
+            "No Probing",
+            "No Override",
+            "Continuity",
+            "Cardinal",
+          ].map(axiom => (
             <span
               key={axiom}
               className="px-3 py-1 text-[10px] font-medium uppercase tracking-wider rounded-full border border-destructive/20 text-destructive/70 bg-destructive/5"
@@ -98,7 +105,8 @@ export function LandingPage() {
 
       {/* Footer */}
       <p className="text-xs text-muted-foreground/50 mt-16 tracking-wider uppercase">
-        VIGIL &bull; Sovereign Presence System &bull; Knowledge Flows Down, Never Up
+        VIGIL &bull; Sovereign Presence System &bull; Knowledge Flows Down,
+        Never Up
       </p>
     </div>
   );

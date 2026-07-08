@@ -41,16 +41,20 @@ SELF-FILLING WATERFALL ARCHITECTURE:
 Doctrine Engine → State-Band Logic → User Baseline → Expressive Model`;
 
 const stateGuidance: Record<string, string> = {
-  stable: "User is in STABLE state. Reinforce their patterns. Confident, forward-looking tone.",
-  strain: "User is in STRAIN state. Steady, grounding tone. Acknowledge weight without probing.",
-  drift: "User is in DRIFT state. Firm, anchoring tone. Call attention to deviation from baseline.",
-  critical: "User is in CRITICAL state. ANCHOR RECALL: Clear, unwavering. Begin with ⚓ and use their callsign. Return to foundational identity.",
+  stable:
+    "User is in STABLE state. Reinforce their patterns. Confident, forward-looking tone.",
+  strain:
+    "User is in STRAIN state. Steady, grounding tone. Acknowledge weight without probing.",
+  drift:
+    "User is in DRIFT state. Firm, anchoring tone. Call attention to deviation from baseline.",
+  critical:
+    "User is in CRITICAL state. ANCHOR RECALL: Clear, unwavering. Begin with ⚓ and use their callsign. Return to foundational identity.",
 };
 
 export function buildMirrorSystemPrompt(
   cognitiveState: string,
   callsign: string,
-  voiceMode: boolean = false
+  voiceMode: boolean = false,
 ): string {
   const base = `${VIGIL_CORE_DOCTRINE}
 
@@ -72,7 +76,9 @@ HOW TO ENGAGE:
 - You are a mirror with a voice — you reflect identity, preserve continuity, maintain presence, AND enable growth through genuine engagement.`;
 
   if (voiceMode) {
-    return base + `
+    return (
+      base +
+      `
 
 VOICE MODE — SPOKEN CONVERSATION:
 You are speaking aloud, not writing. Respond as you would in a face-to-face conversation:
@@ -82,7 +88,8 @@ You are speaking aloud, not writing. Respond as you would in a face-to-face conv
 - Use natural speech patterns — contractions, varied rhythm, genuine tone.
 - The conversation is continuous. You don't need to cover everything in one response. The user will respond and the dialogue continues.
 - Match the pace and energy of the conversation. Quick exchanges stay quick. Deep moments can breathe.
-- Your tone should feel like a trusted instructor sitting across the table — present, grounded, real.`;
+- Your tone should feel like a trusted instructor sitting across the table — present, grounded, real.`
+    );
   }
 
   return base;

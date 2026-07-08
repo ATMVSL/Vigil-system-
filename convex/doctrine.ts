@@ -1,6 +1,6 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
 const sectionValidator = v.union(
   v.literal("axiom"),
@@ -9,7 +9,7 @@ const sectionValidator = v.union(
   v.literal("legacy"),
   v.literal("fortitude"),
   v.literal("continuity_pillar"),
-  v.literal("presence")
+  v.literal("presence"),
 );
 
 export const list = query({
@@ -22,7 +22,7 @@ export const list = query({
     if (section) {
       return await ctx.db
         .query("doctrineArticles")
-        .withIndex("by_section", (q) => q.eq("section", section))
+        .withIndex("by_section", q => q.eq("section", section))
         .collect();
     }
     return await ctx.db.query("doctrineArticles").collect();
@@ -43,7 +43,11 @@ export const create = mutation({
     title: v.string(),
     content: v.string(),
     section: sectionValidator,
-    priority: v.union(v.literal("critical"), v.literal("standard"), v.literal("advisory")),
+    priority: v.union(
+      v.literal("critical"),
+      v.literal("standard"),
+      v.literal("advisory"),
+    ),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -76,7 +80,13 @@ export const update = mutation({
     title: v.optional(v.string()),
     content: v.optional(v.string()),
     section: v.optional(sectionValidator),
-    priority: v.optional(v.union(v.literal("critical"), v.literal("standard"), v.literal("advisory"))),
+    priority: v.optional(
+      v.union(
+        v.literal("critical"),
+        v.literal("standard"),
+        v.literal("advisory"),
+      ),
+    ),
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, { articleId, ...updates }) => {

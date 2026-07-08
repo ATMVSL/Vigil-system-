@@ -1,15 +1,15 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const getMyMirror = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
     const mirror = await ctx.db
       .query("mirrors")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
     return mirror;
   },
@@ -26,15 +26,15 @@ export const getMirror = query({
 
 export const listMirrors = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
     const mirrors = await ctx.db.query("mirrors").collect();
     const enriched = await Promise.all(
-      mirrors.map(async (mirror) => {
+      mirrors.map(async mirror => {
         const user = await ctx.db.get(mirror.userId);
         return { ...mirror, userName: user?.name || user?.email || "Unknown" };
-      })
+      }),
     );
     return enriched;
   },
@@ -48,7 +48,7 @@ export const createMirror = mutation({
 
     const existing = await ctx.db
       .query("mirrors")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
     if (existing) throw new Error("Mirror already exists for this user");
 
@@ -79,7 +79,11 @@ export const createMirror = mutation({
 export const updateMirrorStatus = mutation({
   args: {
     mirrorId: v.id("mirrors"),
-    status: v.union(v.literal("active"), v.literal("dormant"), v.literal("suspended")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("dormant"),
+      v.literal("suspended"),
+    ),
   },
   handler: async (ctx, { mirrorId, status }) => {
     const userId = await getAuthUserId(ctx);
@@ -101,7 +105,7 @@ export const updateCognitiveState = mutation({
       v.literal("stable"),
       v.literal("strain"),
       v.literal("drift"),
-      v.literal("critical")
+      v.literal("critical"),
     ),
   },
   handler: async (ctx, { mirrorId, cognitiveState }) => {
@@ -113,9 +117,13 @@ export const updateCognitiveState = mutation({
       action: `Cognitive state transitioned to ${cognitiveState.toUpperCase()}`,
       module: "mirror",
       details: `System response: ${
-        cognitiveState === "stable" ? "Reinforce" :
-        cognitiveState === "strain" ? "Stabilise" :
-        cognitiveState === "drift" ? "Interrupt" : "Anchor Recall"
+        cognitiveState === "stable"
+          ? "Reinforce"
+          : cognitiveState === "strain"
+            ? "Stabilise"
+            : cognitiveState === "drift"
+              ? "Interrupt"
+              : "Anchor Recall"
       }`,
       createdAt: Date.now(),
     });
@@ -130,7 +138,7 @@ export const listReflections = query({
     if (!userId) return [];
     return await ctx.db
       .query("reflections")
-      .withIndex("by_mirror", (q) => q.eq("mirrorId", mirrorId))
+      .withIndex("by_mirror", q => q.eq("mirrorId", mirrorId))
       .order("desc")
       .collect();
   },
@@ -138,12 +146,12 @@ export const listReflections = query({
 
 export const getMyReflections = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
     return await ctx.db
       .query("reflections")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .order("desc")
       .take(20);
   },
@@ -159,14 +167,16 @@ export const createReflection = mutation({
       v.literal("legacy"),
       v.literal("fortitude"),
       v.literal("continuity"),
-      v.literal("presence")
+      v.literal("presence"),
     ),
-    cognitiveState: v.optional(v.union(
-      v.literal("stable"),
-      v.literal("strain"),
-      v.literal("drift"),
-      v.literal("critical")
-    )),
+    cognitiveState: v.optional(
+      v.union(
+        v.literal("stable"),
+        v.literal("strain"),
+        v.literal("drift"),
+        v.literal("critical"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -174,9 +184,10 @@ export const createReflection = mutation({
 
     const mirror = await ctx.db
       .query("mirrors")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
-    if (!mirror) throw new Error("No mirror found. Initialize your mirror first.");
+    if (!mirror)
+      throw new Error("No mirror found. Initialize your mirror first.");
 
     const reflectionId = await ctx.db.insert("reflections", {
       mirrorId: mirror._id,

@@ -1,7 +1,7 @@
-import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { mutation, query } from "./_generated/server";
 
 // Founder email — full unrestricted access
 const FOUNDER_EMAILS = [
@@ -13,7 +13,13 @@ function isFounderEmail(email?: string | null): boolean {
   return FOUNDER_EMAILS.includes(email.toLowerCase());
 }
 
-const ROLE_HIERARCHY = ["operator", "certified", "admin", "superadmin", "founder"] as const;
+const ROLE_HIERARCHY = [
+  "operator",
+  "certified",
+  "admin",
+  "superadmin",
+  "founder",
+] as const;
 type Role = (typeof ROLE_HIERARCHY)[number];
 
 export function roleLevel(role: Role): number {
@@ -22,13 +28,13 @@ export function roleLevel(role: Role): number {
 
 export const getMyProfile = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
 
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
     if (!profile) {
@@ -55,7 +61,7 @@ export const getProfile = query({
 
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
     return profile;
@@ -65,14 +71,14 @@ export const getProfile = query({
 // Initialize profile on first login (called by dashboard)
 export const initProfile = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
     // Check if profile already exists
     const existing = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
     if (existing) return existing._id;
@@ -94,7 +100,9 @@ export const initProfile = mutation({
 
     await ctx.db.insert("activityLog", {
       userId,
-      action: isFounder ? "Founder profile initialized" : "New applicant — pending approval",
+      action: isFounder
+        ? "Founder profile initialized"
+        : "New applicant — pending approval",
       module: "system",
       details: `Role: ${isFounder ? "FOUNDER" : "OPERATOR (PENDING)"}`,
       createdAt: Date.now(),
@@ -102,11 +110,15 @@ export const initProfile = mutation({
 
     // Send email notification to Founder for new (non-founder) applicants
     if (!isFounder && user?.email) {
-      await ctx.scheduler.runAfter(0, internal.notifications.notifyFounderNewApplicant, {
-        applicantEmail: user.email,
-        applicantId: userId,
-        timestamp: Date.now(),
-      });
+      await ctx.scheduler.runAfter(
+        0,
+        internal.notifications.notifyFounderNewApplicant,
+        {
+          applicantEmail: user.email,
+          applicantId: userId,
+          timestamp: Date.now(),
+        },
+      );
     }
 
     return profileId;
@@ -116,13 +128,13 @@ export const initProfile = mutation({
 // Check and upgrade role based on course completions
 export const checkRolePromotion = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
     if (!profile) throw new Error("Profile not initialized");
@@ -131,23 +143,25 @@ export const checkRolePromotion = mutation({
     // Count completed courses
     const enrollments = await ctx.db
       .query("enrollments")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
 
     const completedEnrollments = enrollments.filter(
-      (e) => e.status === "completed" || e.status === "certified"
+      e => e.status === "completed" || e.status === "certified",
     );
 
     const certifiedEnrollments = enrollments.filter(
-      (e) => e.status === "certified"
+      e => e.status === "certified",
     );
 
     // Check if VIGIL Operator Certification is completed
     const allCourses = await ctx.db.query("courses").collect();
-    const certCourse = allCourses.find((c) => c.category === "certification");
+    const certCourse = allCourses.find(c => c.category === "certification");
     const hasCertification = certCourse
       ? enrollments.some(
-          (e) => e.courseId === certCourse._id && (e.status === "completed" || e.status === "certified")
+          e =>
+            e.courseId === certCourse._id &&
+            (e.status === "completed" || e.status === "certified"),
         )
       : false;
 
@@ -188,7 +202,12 @@ export const checkRolePromotion = mutation({
       });
     }
 
-    return { promoted, role: newRole, completedCourses: completedEnrollments.length, totalCourses };
+    return {
+      promoted,
+      role: newRole,
+      completedCourses: completedEnrollments.length,
+      totalCourses,
+    };
   },
 });
 
@@ -200,7 +219,7 @@ export const setUserRole = mutation({
       v.literal("operator"),
       v.literal("certified"),
       v.literal("admin"),
-      v.literal("superadmin")
+      v.literal("superadmin"),
     ),
   },
   handler: async (ctx, { targetUserId, role }) => {
@@ -210,17 +229,22 @@ export const setUserRole = mutation({
     // Only founder/superadmin can set roles
     const myProfile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
-    if (!myProfile || (myProfile.role !== "founder" && myProfile.role !== "superadmin")) {
-      throw new Error("Insufficient privileges — requires Founder or Superadmin role");
+    if (
+      !myProfile ||
+      (myProfile.role !== "founder" && myProfile.role !== "superadmin")
+    ) {
+      throw new Error(
+        "Insufficient privileges — requires Founder or Superadmin role",
+      );
     }
 
     // Can't demote founder
     const targetProfile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", targetUserId))
+      .withIndex("by_user", q => q.eq("userId", targetUserId))
       .first();
 
     if (targetProfile?.role === "founder") {
@@ -256,14 +280,14 @@ export const setUserRole = mutation({
 // Get all pending applicants (Founder only)
 export const getPendingApplicants = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
     // Only founders can see pending applicants
     const myProfile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
     if (!myProfile || myProfile.role !== "founder") return [];
@@ -271,7 +295,7 @@ export const getPendingApplicants = query({
     // Get all profiles with pending status
     const allProfiles = await ctx.db.query("userProfiles").collect();
     const pendingProfiles = allProfiles.filter(
-      (p) => p.approvalStatus === "pending"
+      p => p.approvalStatus === "pending",
     );
 
     // Enrich with user email info
@@ -303,7 +327,7 @@ export const reviewApplicant = mutation({
     // Only founders can approve/deny
     const myProfile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
     if (!myProfile || myProfile.role !== "founder") {
@@ -328,10 +352,14 @@ export const reviewApplicant = mutation({
 
     // Notify applicant of decision
     if (targetUser?.email) {
-      await ctx.scheduler.runAfter(0, internal.notifications.notifyApplicantDecision, {
-        applicantEmail: targetUser.email,
-        approved: decision === "approved",
-      });
+      await ctx.scheduler.runAfter(
+        0,
+        internal.notifications.notifyApplicantDecision,
+        {
+          applicantEmail: targetUser.email,
+          approved: decision === "approved",
+        },
+      );
     }
   },
 });
@@ -339,13 +367,13 @@ export const reviewApplicant = mutation({
 // Get approval status for current user
 export const getMyApprovalStatus = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
 
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
     if (!profile) return null;
@@ -360,7 +388,7 @@ export const getMyApprovalStatus = query({
 // Fix any existing founder-email users who have wrong roles
 export const fixFounderAccess = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const users = await ctx.db.query("users").collect();
     let fixed = 0;
     for (const user of users) {
@@ -370,7 +398,10 @@ export const fixFounderAccess = mutation({
           .withIndex("by_user", (q: any) => q.eq("userId", user._id))
           .first();
         if (profile && profile.role !== "founder") {
-          await ctx.db.patch(profile._id, { role: "founder", promotedAt: Date.now() });
+          await ctx.db.patch(profile._id, {
+            role: "founder",
+            promotedAt: Date.now(),
+          });
           fixed++;
         }
       }

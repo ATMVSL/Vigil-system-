@@ -13,13 +13,11 @@ const schema = defineSchema({
       v.literal("certified"),
       v.literal("admin"),
       v.literal("superadmin"),
-      v.literal("founder")
+      v.literal("founder"),
     ),
-    approvalStatus: v.optional(v.union(
-      v.literal("pending"),
-      v.literal("approved"),
-      v.literal("denied")
-    )),
+    approvalStatus: v.optional(
+      v.union(v.literal("pending"), v.literal("approved"), v.literal("denied")),
+    ),
     completedCourses: v.number(),
     totalCertifications: v.number(),
     certificationVerified: v.boolean(),
@@ -36,14 +34,22 @@ const schema = defineSchema({
   mirrors: defineTable({
     userId: v.id("users"),
     callsign: v.string(),
-    status: v.union(v.literal("active"), v.literal("dormant"), v.literal("suspended")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("dormant"),
+      v.literal("suspended"),
+    ),
     cognitiveState: v.union(
       v.literal("stable"),
       v.literal("strain"),
       v.literal("drift"),
-      v.literal("critical")
+      v.literal("critical"),
     ),
-    classification: v.union(v.literal("standard"), v.literal("elevated"), v.literal("restricted")),
+    classification: v.union(
+      v.literal("standard"),
+      v.literal("elevated"),
+      v.literal("restricted"),
+    ),
     lastReflection: v.optional(v.number()),
     totalReflections: v.number(),
     doctrineCompliance: v.number(),
@@ -63,16 +69,19 @@ const schema = defineSchema({
       v.literal("legacy"),
       v.literal("fortitude"),
       v.literal("continuity"),
-      v.literal("presence")
+      v.literal("presence"),
     ),
-    cognitiveState: v.optional(v.union(
-      v.literal("stable"),
-      v.literal("strain"),
-      v.literal("drift"),
-      v.literal("critical")
-    )),
+    cognitiveState: v.optional(
+      v.union(
+        v.literal("stable"),
+        v.literal("strain"),
+        v.literal("drift"),
+        v.literal("critical"),
+      ),
+    ),
     createdAt: v.number(),
-  }).index("by_mirror", ["mirrorId"])
+  })
+    .index("by_mirror", ["mirrorId"])
     .index("by_user", ["userId"]),
 
   // ─── DOCTRINE ARTICLES ─── SELF governing principles
@@ -86,9 +95,13 @@ const schema = defineSchema({
       v.literal("legacy"),
       v.literal("fortitude"),
       v.literal("continuity_pillar"),
-      v.literal("presence")
+      v.literal("presence"),
     ),
-    priority: v.union(v.literal("critical"), v.literal("standard"), v.literal("advisory")),
+    priority: v.union(
+      v.literal("critical"),
+      v.literal("standard"),
+      v.literal("advisory"),
+    ),
     version: v.string(),
     isActive: v.boolean(),
     createdBy: v.id("users"),
@@ -107,22 +120,28 @@ const schema = defineSchema({
       v.literal("operational"),
       v.literal("behavioral"),
       v.literal("validation"),
-      v.literal("certification")
+      v.literal("certification"),
     ),
     status: v.union(
       v.literal("active"),
       v.literal("archived"),
       v.literal("under_review"),
-      v.literal("validated")
+      v.literal("validated"),
     ),
-    severity: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("critical")),
+    severity: v.union(
+      v.literal("low"),
+      v.literal("medium"),
+      v.literal("high"),
+      v.literal("critical"),
+    ),
     source: v.string(),
     linkedMirrorId: v.optional(v.id("mirrors")),
     metadata: v.optional(v.string()),
     createdBy: v.id("users"),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_category", ["category"])
+  })
+    .index("by_category", ["category"])
     .index("by_status", ["status"])
     .index("by_severity", ["severity"]),
 
@@ -138,9 +157,13 @@ const schema = defineSchema({
       v.literal("infrastructure"),
       v.literal("certification"),
       v.literal("peer_support"),
-      v.literal("continuing_education")
+      v.literal("continuing_education"),
     ),
-    difficulty: v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced")),
+    difficulty: v.union(
+      v.literal("beginner"),
+      v.literal("intermediate"),
+      v.literal("advanced"),
+    ),
     lessonsCount: v.number(),
     estimatedHours: v.number(),
     isPublished: v.boolean(),
@@ -158,7 +181,7 @@ const schema = defineSchema({
       v.literal("lab"),
       v.literal("assessment"),
       v.literal("simulation"),
-      v.literal("practical")
+      v.literal("practical"),
     ),
     order: v.number(),
     durationMinutes: v.number(),
@@ -175,24 +198,29 @@ const schema = defineSchema({
       v.literal("enrolled"),
       v.literal("in_progress"),
       v.literal("completed"),
-      v.literal("certified")
+      v.literal("certified"),
     ),
     currentLessonOrder: v.optional(v.number()),
     enrolledAt: v.number(),
     completedAt: v.optional(v.number()),
-  }).index("by_user", ["userId"])
+  })
+    .index("by_user", ["userId"])
     .index("by_course", ["courseId"]),
 
   // ─── TRAINING MIRRORS ─── Isolated training mirrors (NOT production)
   trainingMirrors: defineTable({
     userId: v.id("users"),
     callsign: v.string(),
-    status: v.union(v.literal("active"), v.literal("paused"), v.literal("completed")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("paused"),
+      v.literal("completed"),
+    ),
     cognitiveState: v.union(
       v.literal("stable"),
       v.literal("strain"),
       v.literal("drift"),
-      v.literal("critical")
+      v.literal("critical"),
     ),
     scenarioId: v.optional(v.id("simulations")),
     syntheticUserCount: v.number(),
@@ -211,9 +239,13 @@ const schema = defineSchema({
       v.literal("infrastructure"),
       v.literal("peer_support"),
       v.literal("crisis"),
-      v.literal("doctrine_review")
+      v.literal("doctrine_review"),
     ),
-    difficulty: v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced")),
+    difficulty: v.union(
+      v.literal("beginner"),
+      v.literal("intermediate"),
+      v.literal("advanced"),
+    ),
     scenario: v.string(), // JSON scenario data
     objectives: v.string(),
     estimatedMinutes: v.number(),
@@ -226,7 +258,11 @@ const schema = defineSchema({
   sqlChallenges: defineTable({
     title: v.string(),
     description: v.string(),
-    difficulty: v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced")),
+    difficulty: v.union(
+      v.literal("beginner"),
+      v.literal("intermediate"),
+      v.literal("advanced"),
+    ),
     category: v.union(
       v.literal("select"),
       v.literal("joins"),
@@ -234,16 +270,17 @@ const schema = defineSchema({
       v.literal("subqueries"),
       v.literal("insert_update"),
       v.literal("schema_design"),
-      v.literal("vigil_specific")
+      v.literal("vigil_specific"),
     ),
     tableSchema: v.string(), // JSON: table definitions for this challenge
-    sampleData: v.string(),  // JSON: sample rows
+    sampleData: v.string(), // JSON: sample rows
     expectedQuery: v.string(),
     hints: v.string(),
     points: v.number(),
     order: v.number(),
     createdAt: v.number(),
-  }).index("by_category", ["category"])
+  })
+    .index("by_category", ["category"])
     .index("by_difficulty", ["difficulty"]),
 
   // ─── SQL SUBMISSIONS ─── Student SQL query attempts
@@ -255,7 +292,8 @@ const schema = defineSchema({
     feedback: v.string(),
     executionTime: v.optional(v.number()),
     submittedAt: v.number(),
-  }).index("by_user", ["userId"])
+  })
+    .index("by_user", ["userId"])
     .index("by_challenge", ["challengeId"]),
 
   // ─── INFRASTRUCTURE SCENARIOS ─── Interactive infra training
@@ -270,9 +308,13 @@ const schema = defineSchema({
       v.literal("deployment"),
       v.literal("backup"),
       v.literal("monitoring"),
-      v.literal("disaster_recovery")
+      v.literal("disaster_recovery"),
     ),
-    difficulty: v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced")),
+    difficulty: v.union(
+      v.literal("beginner"),
+      v.literal("intermediate"),
+      v.literal("advanced"),
+    ),
     steps: v.string(), // JSON: ordered steps with validation
     objectives: v.string(),
     points: v.number(),
@@ -285,13 +327,18 @@ const schema = defineSchema({
   infraAttempts: defineTable({
     userId: v.id("users"),
     scenarioId: v.id("infraScenarios"),
-    status: v.union(v.literal("in_progress"), v.literal("completed"), v.literal("failed")),
+    status: v.union(
+      v.literal("in_progress"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
     currentStep: v.number(),
     totalSteps: v.number(),
     score: v.number(),
     startedAt: v.number(),
     completedAt: v.optional(v.number()),
-  }).index("by_user", ["userId"])
+  })
+    .index("by_user", ["userId"])
     .index("by_scenario", ["scenarioId"]),
 
   // ─── EXAMS ─── Course assessments
@@ -317,7 +364,8 @@ const schema = defineSchema({
     passed: v.boolean(),
     startedAt: v.number(),
     completedAt: v.number(),
-  }).index("by_user", ["userId"])
+  })
+    .index("by_user", ["userId"])
     .index("by_exam", ["examId"]),
 
   // ─── CERTIFICATIONS ─── Digital certificates
@@ -329,15 +377,20 @@ const schema = defineSchema({
       v.literal("mirror_operator"),
       v.literal("peer_support"),
       v.literal("vigil_operator"),
-      v.literal("vigil_instructor")
+      v.literal("vigil_instructor"),
     ),
     courseId: v.optional(v.id("courses")),
     certificateNumber: v.string(),
-    status: v.union(v.literal("active"), v.literal("expired"), v.literal("revoked")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("expired"),
+      v.literal("revoked"),
+    ),
     issuedAt: v.number(),
     expiresAt: v.number(),
     issuedBy: v.optional(v.id("users")),
-  }).index("by_user", ["userId"])
+  })
+    .index("by_user", ["userId"])
     .index("by_type", ["type"]),
 
   // ─── INSTRUCTOR REVIEWS ─── Instructor grading and feedback
@@ -350,12 +403,18 @@ const schema = defineSchema({
       v.literal("simulation"),
       v.literal("peer_support"),
       v.literal("certification_review"),
-      v.literal("general")
+      v.literal("general"),
     ),
-    grade: v.union(v.literal("pass"), v.literal("fail"), v.literal("merit"), v.literal("distinction")),
+    grade: v.union(
+      v.literal("pass"),
+      v.literal("fail"),
+      v.literal("merit"),
+      v.literal("distinction"),
+    ),
     feedback: v.string(),
     createdAt: v.number(),
-  }).index("by_student", ["studentId"])
+  })
+    .index("by_student", ["studentId"])
     .index("by_instructor", ["instructorId"]),
 
   // ─── COMMUNITY ─── Peer support and discussion
@@ -369,12 +428,13 @@ const schema = defineSchema({
       v.literal("study_group"),
       v.literal("doctrine_discussion"),
       v.literal("technical_help"),
-      v.literal("announcements")
+      v.literal("announcements"),
     ),
     replyCount: v.number(),
     isPinned: v.boolean(),
     createdAt: v.number(),
-  }).index("by_category", ["category"])
+  })
+    .index("by_category", ["category"])
     .index("by_user", ["userId"]),
 
   communityReplies: defineTable({
@@ -396,7 +456,7 @@ const schema = defineSchema({
       v.literal("academy_handbook"),
       v.literal("instructor_manual"),
       v.literal("student_workbook"),
-      v.literal("release_notes")
+      v.literal("release_notes"),
     ),
     version: v.string(),
     isPublished: v.boolean(),
@@ -421,7 +481,8 @@ const schema = defineSchema({
     violationCount: v.number(),
     violations: v.string(), // JSON-encoded violation details
     createdAt: v.number(),
-  }).index("by_mirror", ["mirrorId"])
+  })
+    .index("by_mirror", ["mirrorId"])
     .index("by_user", ["userId"])
     .index("by_twin", ["twin"]),
 
@@ -441,11 +502,12 @@ const schema = defineSchema({
       v.literal("infra_lab"),
       v.literal("certification"),
       v.literal("community"),
-      v.literal("documentation")
+      v.literal("documentation"),
     ),
     details: v.optional(v.string()),
     createdAt: v.number(),
-  }).index("by_module", ["module"])
+  })
+    .index("by_module", ["module"])
     .index("by_user", ["userId"]),
 });
 

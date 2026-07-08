@@ -56,7 +56,11 @@ export function DashboardPage() {
     if (!stats) return;
     if (stats.doctrine.total === 0) {
       // First visit: seed everything
-      seedDoctrine().then(() => seedPlatform()).then(() => seedContent()).then(() => seedLegal()).catch(() => {});
+      seedDoctrine()
+        .then(() => seedPlatform())
+        .then(() => seedContent())
+        .then(() => seedLegal())
+        .catch(() => {});
     } else {
       // Doctrine exists but lessons may not — seed content separately
       seedContent().catch(() => {});
@@ -75,12 +79,11 @@ export function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Command Center
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Command Center</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground text-sm">
-              Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}. System status overview.
+              Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}.
+              System status overview.
             </p>
             {profile && !profile.needsInit && (
               <Badge
@@ -89,12 +92,12 @@ export function DashboardPage() {
                   profile.role === "founder"
                     ? "bg-chart-4/10 text-chart-4 border-chart-4/20"
                     : profile.role === "superadmin"
-                    ? "bg-destructive/10 text-destructive border-destructive/20"
-                    : profile.role === "admin"
-                    ? "bg-chart-2/10 text-chart-2 border-chart-2/20"
-                    : profile.role === "certified"
-                    ? "bg-success/10 text-success border-success/20"
-                    : "bg-muted text-muted-foreground"
+                      ? "bg-destructive/10 text-destructive border-destructive/20"
+                      : profile.role === "admin"
+                        ? "bg-chart-2/10 text-chart-2 border-chart-2/20"
+                        : profile.role === "certified"
+                          ? "bg-success/10 text-success border-success/20"
+                          : "bg-muted text-muted-foreground"
                 }`}
               >
                 {profile.role === "founder" && <Star className="size-3 mr-1" />}
@@ -210,11 +213,31 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent className="grid gap-2">
             {[
-              { label: "Open Mirror", href: "/mirror", icon: Eye, desc: "View your continuity profile" },
-              { label: "View Doctrine", href: "/doctrine", icon: BookOpen, desc: "Review active principles" },
-              { label: "Evidence Log", href: "/evidence", icon: FileText, desc: "Track and record evidence" },
-              { label: "Academy", href: "/academy", icon: GraduationCap, desc: "Training and certification" },
-            ].map((action) => (
+              {
+                label: "Open Mirror",
+                href: "/mirror",
+                icon: Eye,
+                desc: "View your continuity profile",
+              },
+              {
+                label: "View Doctrine",
+                href: "/doctrine",
+                icon: BookOpen,
+                desc: "Review active principles",
+              },
+              {
+                label: "Evidence Log",
+                href: "/evidence",
+                icon: FileText,
+                desc: "Track and record evidence",
+              },
+              {
+                label: "Academy",
+                href: "/academy",
+                icon: GraduationCap,
+                desc: "Training and certification",
+              },
+            ].map(action => (
               <Button
                 key={action.label}
                 variant="outline"
@@ -227,7 +250,9 @@ export function DashboardPage() {
                   </div>
                   <div className="text-left">
                     <div className="text-sm font-medium">{action.label}</div>
-                    <div className="text-xs text-muted-foreground">{action.desc}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {action.desc}
+                    </div>
                   </div>
                 </Link>
               </Button>
@@ -250,13 +275,15 @@ export function DashboardPage() {
               </p>
             ) : (
               <div className="space-y-3">
-                {activity.map((item) => (
+                {activity.map(item => (
                   <div
                     key={item._id}
                     className="flex items-start gap-3 py-2 border-b border-border/50 last:border-0"
                   >
                     <div className="rounded-md bg-muted p-1.5 mt-0.5">
-                      {moduleIcons[item.module] || <Activity className="size-3.5" />}
+                      {moduleIcons[item.module] || (
+                        <Activity className="size-3.5" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{item.action}</p>
@@ -266,9 +293,15 @@ export function DashboardPage() {
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground">{item.userName}</span>
-                        <span className="text-xs text-muted-foreground/50">•</span>
-                        <span className="text-xs text-muted-foreground">{formatTime(item.createdAt)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {item.userName}
+                        </span>
+                        <span className="text-xs text-muted-foreground/50">
+                          •
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTime(item.createdAt)}
+                        </span>
                       </div>
                     </div>
                     <Badge variant="outline" className="text-[10px] uppercase">
@@ -296,11 +329,15 @@ export function DashboardPage() {
                 <Shield className="size-5 text-primary" />
                 <div>
                   <p className="text-sm font-medium">Doctrine Compliance</p>
-                  <p className="text-xl font-bold">{health.avgDoctrineCompliance}%</p>
+                  <p className="text-xl font-bold">
+                    {health.avgDoctrineCompliance}%
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
-                <AlertTriangle className={`size-5 ${health.criticalAlerts > 0 ? "text-destructive" : "text-success"}`} />
+                <AlertTriangle
+                  className={`size-5 ${health.criticalAlerts > 0 ? "text-destructive" : "text-success"}`}
+                />
                 <div>
                   <p className="text-sm font-medium">Critical Alerts</p>
                   <p className="text-xl font-bold">{health.criticalAlerts}</p>
@@ -327,20 +364,46 @@ export function DashboardPage() {
             </h3>
             <div className="text-[11px] leading-relaxed space-y-2">
               <p className="font-bold text-foreground">
-                INTERACTION WITH ANY AND ALL VIGIL SYSTEMS, LLC PLATFORMS IS CONSIDERED AND LEGALLY BINDING AND CONSTITUTES AGREED UPON USE. ALL USERS ARE SUBJECT TO LEGAL RAMIFICATIONS FOR VIOLATIONS.
+                INTERACTION WITH ANY AND ALL VIGIL SYSTEMS, LLC PLATFORMS IS
+                CONSIDERED AND LEGALLY BINDING AND CONSTITUTES AGREED UPON USE.
+                ALL USERS ARE SUBJECT TO LEGAL RAMIFICATIONS FOR VIOLATIONS.
               </p>
               <p className="font-bold text-foreground">
-                NO USER IS GRANTED PERMISSION — INFERRED OR OTHERWISE — TO UTILIZE ANY OF FOUNDER AND CREATOR STEVEN GONZALES' CONCEPTS, INTELLECTUAL PROPERTY, OR PROPRIETARY PROPERTY.
+                NO USER IS GRANTED PERMISSION — INFERRED OR OTHERWISE — TO
+                UTILIZE ANY OF FOUNDER AND CREATOR STEVEN GONZALES' CONCEPTS,
+                INTELLECTUAL PROPERTY, OR PROPRIETARY PROPERTY.
               </p>
               <p className="font-bold text-foreground">
-                ALL CONTENT, SYSTEMS, DOCTRINE, AND TRAINING MATERIALS ARE THE EXCLUSIVE INTELLECTUAL PROPERTY OF VIGIL SYSTEMS, LLC. ALL RIGHTS RESERVED.
+                ALL CONTENT, SYSTEMS, DOCTRINE, AND TRAINING MATERIALS ARE THE
+                EXCLUSIVE INTELLECTUAL PROPERTY OF VIGIL SYSTEMS, LLC. ALL
+                RIGHTS RESERVED.
               </p>
             </div>
             <div className="flex gap-3 pt-1 text-[9px]">
-              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">NDA</a>
-              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">Terms of Use</a>
-              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">Privacy Policy</a>
-              <a href="/documentation" className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80">IP Notice</a>
+              <a
+                href="/documentation"
+                className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80"
+              >
+                NDA
+              </a>
+              <a
+                href="/documentation"
+                className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80"
+              >
+                Terms of Use
+              </a>
+              <a
+                href="/documentation"
+                className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="/documentation"
+                className="text-primary underline underline-offset-2 font-semibold hover:text-primary/80"
+              >
+                IP Notice
+              </a>
             </div>
           </div>
         </CardContent>

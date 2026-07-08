@@ -39,7 +39,8 @@ const FORBIDDEN_PATTERNS = [
 
 // ─── REQUIRED PRINCIPLES ───
 // These concepts must be implicitly present in Mirror behavior.
-const _DOCTRINE_ANCHORS = [
+// Exported for use by future Verified Intel pipeline
+export const DOCTRINE_ANCHORS = [
   "sovereignty",
   "continuity",
   "presence",

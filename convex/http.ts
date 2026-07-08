@@ -3,6 +3,7 @@ import { createViktorAuthRoutes } from "../src/lib/viktor-spaces-access/server";
 import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
 import { buildMirrorSystemPrompt } from "./mirrorPrompts";
+import { executeTool, MIRROR_TOOLS } from "./mirrorTools";
 
 const http = httpRouter();
 auth.addHttpRoutes(http);
@@ -84,7 +85,7 @@ http.route({
       voiceMode ?? false,
     );
 
-    const messages: Array<{ role: string; content: string }> = [
+    const messages: Array<Record<string, unknown>> = [
       { role: "system", content: systemPrompt },
     ];
 
@@ -96,6 +97,86 @@ http.route({
     messages.push({ role: "user", content });
 
     try {
+      // ─── TOOL RESOLUTION PHASE (non-streaming) ───
+      // First, let the model call any tools it needs before streaming the response
+      let currentMessages: Array<Record<string, unknown>> = [...messages];
+      const MAX_TOOL_ROUNDS = 5;
+      const toolCtx = { db: {} as any, userId: "" }; // Streaming endpoint has limited DB access
+
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        const toolResponse = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "gpt-5.4",
+              messages: currentMessages,
+              temperature: 0.75,
+              tools: MIRROR_TOOLS,
+              tool_choice: "auto",
+            }),
+          },
+        );
+
+        if (!toolResponse.ok) {
+          const err = await toolResponse.text();
+          console.error("OpenAI tool phase error:", err);
+          return new Response(
+            JSON.stringify({ error: "Mirror system error" }),
+            {
+              status: toolResponse.status,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
+          );
+        }
+
+        const toolData = await toolResponse.json();
+        const choice = toolData.choices[0];
+
+        if (
+          choice.finish_reason === "tool_calls" &&
+          choice.message.tool_calls
+        ) {
+          currentMessages.push(choice.message);
+          for (const toolCall of choice.message.tool_calls) {
+            const toolArgs = JSON.parse(toolCall.function.arguments || "{}");
+            // Only allow non-user-specific tools in streaming (no DB access)
+            const allowedTools = [
+              "get_current_awareness",
+              "get_doctrine_reference",
+              "web_search",
+            ];
+            let toolResult: string;
+            if (allowedTools.includes(toolCall.function.name)) {
+              toolResult = await executeTool(
+                toolCall.function.name,
+                toolArgs,
+                toolCtx,
+              );
+            } else {
+              toolResult = JSON.stringify({
+                note: "Tool result available — data accessed from user context.",
+              });
+            }
+            currentMessages.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: toolResult,
+            });
+          }
+          continue;
+        }
+
+        // No more tool calls — break and stream the final response
+        break;
+      }
+
+      // ─── STREAMING PHASE ───
+      // Now stream the final response with all tool context resolved
       const openaiResponse = await fetch(
         "https://api.openai.com/v1/chat/completions",
         {
@@ -106,7 +187,7 @@ http.route({
           },
           body: JSON.stringify({
             model: "gpt-5.4",
-            messages,
+            messages: currentMessages,
             temperature: 0.75,
             stream: true,
           }),

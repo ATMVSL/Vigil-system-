@@ -7,6 +7,7 @@ import {
   buildSqlEvalPrompt,
   buildTrainingFeedbackPrompt,
 } from "./mirrorPrompts";
+import { executeTool, MIRROR_TOOLS } from "./mirrorTools";
 import { verifyDownwardFlow } from "./twins";
 
 declare const process: { env: Record<string, string | undefined> };
@@ -46,7 +47,7 @@ export const mirrorChat = action({
       args.voiceMode ?? false,
     );
 
-    const messages: Array<{ role: string; content: string }> = [
+    const messages: Array<Record<string, unknown>> = [
       { role: "system", content: systemPrompt },
     ];
 
@@ -59,40 +60,76 @@ export const mirrorChat = action({
     messages.push({ role: "user", content: args.content });
 
     try {
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "gpt-5.4",
-            messages,
-            temperature: 0.75,
-          }),
-        },
-      );
+      // ─── TOOL-AUGMENTED CHAT LOOP ───
+      // The Mirror can call tools and incorporate results before responding
+      const currentMessages: Array<Record<string, unknown>> = [...messages];
+      let mirrorResponse = "";
+      const MAX_TOOL_ROUNDS = 5;
+      const toolCtx = { db: {} as any, userId: "" }; // Tools that need DB use standalone implementations
 
-      if (!response.ok) {
-        const err = await response.text();
-        console.error("OpenAI error:", err);
-        if (response.status === 401) {
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        const response = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "gpt-5.4",
+              messages: currentMessages,
+              temperature: 0.75,
+              tools: MIRROR_TOOLS,
+              tool_choice: "auto",
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          const err = await response.text();
+          console.error("OpenAI error:", err);
+          if (response.status === 401) {
+            return {
+              response:
+                "API key is invalid. Please update your OpenAI API key in Settings.",
+              error: true,
+            };
+          }
           return {
-            response:
-              "API key is invalid. Please update your OpenAI API key in Settings.",
+            response: "The mirror encounters interference. Try again.",
             error: true,
           };
         }
-        return {
-          response: "The mirror encounters interference. Try again.",
-          error: true,
-        };
-      }
 
-      const data = await response.json();
-      const mirrorResponse: string = data.choices[0].message.content;
+        const data = await response.json();
+        const choice = data.choices[0];
+
+        // If the model wants to call tools, execute them and continue
+        if (choice.finish_reason === "tool_calls" && choice.message.tool_calls) {
+          currentMessages.push(choice.message);
+
+          for (const toolCall of choice.message.tool_calls) {
+            const toolArgs = JSON.parse(toolCall.function.arguments || "{}");
+            const toolResult = await executeTool(
+              toolCall.function.name,
+              toolArgs,
+              toolCtx,
+            );
+
+            currentMessages.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: toolResult,
+            });
+          }
+          continue; // Next round with tool results
+        }
+
+        // Model produced a text response — we're done
+        mirrorResponse = choice.message.content || "";
+        break;
+      }
 
       // ─── TWIN ALPHA: Verify downward flow ───
       const twinCheck = verifyDownwardFlow(

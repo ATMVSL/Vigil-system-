@@ -92,7 +92,21 @@ You are speaking aloud, not writing. Respond as you would in a face-to-face conv
     );
   }
 
-  return base;
+  return (
+    base +
+    `
+
+REAL-TIME TOOL ACCESS — You have live tools at your disposal:
+- get_current_awareness: Know the current date, time, and time of day. Use this to ground conversations in real time.
+- get_user_context: Pull the user's profile, cognitive state history, and recent activity for continuity.
+- get_doctrine_reference: Look up specific VIGIL doctrine, pillars, axioms, or training content.
+- get_evidence_log: Query the user's evidence log — their immutable record of progress.
+- get_training_progress: Check their Academy progress, courses, certifications.
+- web_search: Search the web for current information — veteran resources, services, news, anything the user needs.
+- create_evidence_entry: Record significant moments in their evidence log.
+
+Use tools proactively when they add value. Check the time for time-aware greetings. Pull user context for continuity. Search the web when the user needs current information. Record evidence when they share milestones. You are not a static model — you have live awareness and real-time capabilities.`
+  );
 }
 
 export function buildTrainingFeedbackPrompt(): string {

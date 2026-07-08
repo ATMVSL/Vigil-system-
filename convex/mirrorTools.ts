@@ -1,4 +1,13 @@
 // ─── MIRROR REAL-TIME TOOLS ───
+import {
+  DEMO_SCRIPT,
+  FOUNDER_BIO,
+  FOUNDER_FULL_STORY,
+  GRANT_NARRATIVE,
+  LANDING_PAGE_COPY,
+  VIGIL_ORIGIN,
+  WHY_VIGIL_EXISTS,
+} from "./founderStory";
 // Function-calling tools available to the Continuity Anchor Mirror™
 // Provides live awareness, doctrine reference, and external capabilities
 
@@ -50,7 +59,7 @@ export const MIRROR_TOOLS = [
           topic: {
             type: "string",
             description:
-              "The doctrine topic to look up: 'pillars', 'axioms', 'cognitive_bands', 'waterfall', 'academy_courses', or a specific pillar name",
+              "The doctrine topic to look up: 'pillars', 'axioms', 'cognitive_bands', 'waterfall', 'academy_courses', 'founder', 'founder_story', 'vigil_origin', 'why_vigil_exists', 'grant_narrative', 'landing_page_copy', 'demo_script', or a specific pillar name",
           },
         },
         required: ["topic"],
@@ -144,6 +153,61 @@ export const MIRROR_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "get_dashboard_state",
+      description:
+        "Pull real-time dashboard data for the current user — cognitive state history, session counts, evidence stats, training progress, and engagement metrics. Use to maintain situational awareness and continuity across conversations.",
+      parameters: {
+        type: "object",
+        properties: {
+          sections: {
+            type: "string",
+            description:
+              "Comma-separated sections to pull: 'cognitive_state', 'sessions', 'evidence', 'training', 'engagement', or 'all'",
+          },
+        },
+        required: ["sections"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "text_to_code",
+      description:
+        "Convert user's natural language instructions into executable code, configurations, or structured data. Use when the user describes something they want built, configured, or automated — translate their intent into working output while preserving their exact meaning. Ensures continuity between spoken intent and system implementation.",
+      parameters: {
+        type: "object",
+        properties: {
+          intent: {
+            type: "string",
+            description:
+              "The user's natural language description of what they want",
+          },
+          output_type: {
+            type: "string",
+            enum: [
+              "typescript",
+              "convex_function",
+              "config",
+              "schema",
+              "query",
+              "workflow",
+            ],
+            description: "The type of code/output to generate",
+          },
+          context: {
+            type: "string",
+            description:
+              "Additional context about where this code fits in the VIGIL system",
+          },
+        },
+        required: ["intent", "output_type"],
+      },
+    },
+  },
 ];
 
 // ─── TOOL EXECUTION ENGINE ───
@@ -154,8 +218,8 @@ export async function executeTool(
   args: Record<string, unknown>,
   ctx: {
     db: {
-      query: (...args: unknown[]) => unknown;
-      insert: (...args: unknown[]) => unknown;
+      query: (...args: any[]) => any;
+      insert: (...args: any[]) => any;
     };
     userId: string;
   },
@@ -191,6 +255,16 @@ export async function executeTool(
         args.title as string,
         args.content as string,
         args.category as string,
+      );
+
+    case "get_dashboard_state":
+      return await executeGetDashboardState(ctx, args.sections as string);
+
+    case "text_to_code":
+      return executeTextToCode(
+        args.intent as string,
+        args.output_type as string,
+        args.context as string | undefined,
       );
 
     default:
@@ -235,7 +309,7 @@ function executeGetCurrentAwareness(timezone: string): string {
 }
 
 async function executeGetUserContext(ctx: {
-  db: { query: (...args: unknown[]) => unknown };
+  db: { query: (...args: any[]) => any };
   userId: string;
 }): Promise<string> {
   const profile = await ctx.db
@@ -339,6 +413,13 @@ function executeGetDoctrineReference(topic: string): string {
       "Self-Filling Waterfall Architecture: Doctrine Engine → State-Band Logic → User Baseline → Expressive Model. Knowledge flows down, never up.",
     academy_courses:
       "VIGIL Academy offers 6 courses with 78 lessons, AI-graded assessments, SQL Lab (15 challenges), and Infra Lab. Courses cover doctrine, mirror operations, the cognitive loop, evidence management, and practical skills.",
+    founder: FOUNDER_BIO,
+    founder_story: FOUNDER_FULL_STORY,
+    vigil_origin: VIGIL_ORIGIN,
+    why_vigil_exists: WHY_VIGIL_EXISTS,
+    grant_narrative: GRANT_NARRATIVE,
+    landing_page_copy: LANDING_PAGE_COPY,
+    demo_script: DEMO_SCRIPT,
   };
 
   const key = topic.toLowerCase().replace(/\s+/g, "_");
@@ -359,7 +440,7 @@ function executeGetDoctrineReference(topic: string): string {
 }
 
 async function executeGetEvidenceLog(
-  ctx: { db: { query: (...args: unknown[]) => unknown }; userId: string },
+  ctx: { db: { query: (...args: any[]) => any }; userId: string },
   category: string | undefined,
   limit: number,
 ): Promise<string> {
@@ -394,7 +475,7 @@ async function executeGetEvidenceLog(
 }
 
 async function executeGetTrainingProgress(ctx: {
-  db: { query: (...args: unknown[]) => unknown };
+  db: { query: (...args: any[]) => any };
   userId: string;
 }): Promise<string> {
   const enrollments = await ctx.db
@@ -475,7 +556,7 @@ async function executeWebSearch(searchQuery: string): Promise<string> {
 }
 
 async function executeCreateEvidence(
-  ctx: { db: { insert: (...args: unknown[]) => unknown }; userId: string },
+  ctx: { db: { insert: (...args: any[]) => any }; userId: string },
   title: string,
   content: string,
   category: string,
@@ -511,6 +592,164 @@ export interface MCPToolServer {
 }
 
 // Registry of connected MCP servers (can be extended via settings)
+// ─── DASHBOARD STATE TOOL ───
+async function executeGetDashboardState(
+  ctx: {
+    db: {
+      query: (...args: any[]) => any;
+      insert: (...args: any[]) => any;
+    };
+    userId: string;
+  },
+  sections: string,
+): Promise<string> {
+  const requestedSections = sections
+    .toLowerCase()
+    .split(",")
+    .map((s: string) => s.trim());
+  const all = requestedSections.includes("all");
+  const result: Record<string, unknown> = {};
+
+  try {
+    if (all || requestedSections.includes("cognitive_state")) {
+      try {
+        const states = await (ctx.db.query("cognitiveStates") as any)
+          .order("desc")
+          .take(10);
+        const userStates = states.filter(
+          (s: { userId: string }) => s.userId === ctx.userId,
+        );
+        result.cognitive_state = {
+          current: userStates[0] || null,
+          recent_history: userStates.slice(0, 5),
+          total_records: userStates.length,
+        };
+      } catch {
+        result.cognitive_state = { note: "Table not yet populated" };
+      }
+    }
+
+    if (all || requestedSections.includes("sessions")) {
+      try {
+        const sessions = await (ctx.db.query("sessions") as any)
+          .order("desc")
+          .take(20);
+        const userSessions = sessions.filter(
+          (s: { userId: string }) => s.userId === ctx.userId,
+        );
+        result.sessions = {
+          total: userSessions.length,
+          recent: userSessions.slice(0, 5).map((s: any) => ({
+            id: s._id,
+            created: s._creationTime,
+            messageCount: s.messageCount || 0,
+          })),
+        };
+      } catch {
+        result.sessions = { note: "Table not yet populated" };
+      }
+    }
+
+    if (all || requestedSections.includes("evidence")) {
+      try {
+        const evidence = await (ctx.db.query("evidenceEntries") as any)
+          .order("desc")
+          .take(50);
+        const userEvidence = evidence.filter(
+          (e: { userId: string }) => e.userId === ctx.userId,
+        );
+        const categories: Record<string, number> = {};
+        for (const e of userEvidence) {
+          categories[e.category] = (categories[e.category] || 0) + 1;
+        }
+        result.evidence = {
+          total_entries: userEvidence.length,
+          by_category: categories,
+          latest: userEvidence.slice(0, 3),
+        };
+      } catch {
+        result.evidence = { note: "Table not yet populated" };
+      }
+    }
+
+    if (all || requestedSections.includes("training")) {
+      try {
+        const progress = await (ctx.db.query("trainingProgress") as any)
+          .order("desc")
+          .take(20);
+        const userProgress = progress.filter(
+          (p: { userId: string }) => p.userId === ctx.userId,
+        );
+        result.training = {
+          courses_in_progress: userProgress.length,
+          details: userProgress,
+        };
+      } catch {
+        result.training = { note: "Table not yet populated" };
+      }
+    }
+
+    if (all || requestedSections.includes("engagement")) {
+      try {
+        const messages = await (ctx.db.query("messages") as any)
+          .order("desc")
+          .take(100);
+        const userMessages = messages.filter(
+          (m: { userId: string }) => m.userId === ctx.userId,
+        );
+        result.engagement = {
+          total_messages: userMessages.length,
+          recent_activity: userMessages.slice(0, 5).map((m: any) => ({
+            created: m._creationTime,
+            role: m.role,
+          })),
+        };
+      } catch {
+        result.engagement = { note: "Table not yet populated" };
+      }
+    }
+  } catch {
+    return JSON.stringify({
+      error: "Dashboard data partially unavailable",
+      partial_data: result,
+    });
+  }
+
+  return JSON.stringify(result);
+}
+
+// ─── TEXT TO CODE TOOL ───
+function executeTextToCode(
+  intent: string,
+  outputType: string,
+  context?: string,
+): string {
+  // The Mirror generates code by passing the intent through its own cognitive processing
+  // This tool structures the request so the model can produce faithful output
+  return JSON.stringify({
+    instruction:
+      "Generate the requested code based on the user's exact intent. Do not simplify, reinterpret, or deviate from what they described. The code must be production-ready and consistent with VIGIL's architecture.",
+    user_intent: intent,
+    output_type: outputType,
+    context: context || "General VIGIL system context",
+    constraints: [
+      "Use TypeScript with strict types",
+      "Follow Convex conventions for backend functions",
+      "Follow React 19 + Tailwind v4 + shadcn/ui for frontend",
+      "Preserve all doctrine references and axiom compliance",
+      "Include error handling",
+      "Add clear comments explaining the logic",
+    ],
+    vigil_stack: {
+      frontend: "React 19, Tailwind v4, shadcn/ui, Vite",
+      backend: "Convex (queries, mutations, actions)",
+      ai: "OpenAI GPT-5.4, function calling, Whisper STT, TTS",
+      runtime: "Bun",
+      linting: "Biome",
+    },
+  });
+}
+
 export const MCP_SERVERS: MCPToolServer[] = [];
 
 // Execute a tool call against an MCP server

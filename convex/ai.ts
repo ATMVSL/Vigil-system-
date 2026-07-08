@@ -7,6 +7,7 @@ import {
   buildSqlEvalPrompt,
   buildAssessmentGradingPrompt,
 } from "./mirrorPrompts";
+import { verifyDownwardFlow } from "./twins";
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -68,7 +69,34 @@ export const mirrorChat = action({
       }
 
       const data = await response.json();
-      return { response: data.choices[0].message.content, error: false };
+      const mirrorResponse: string = data.choices[0].message.content;
+
+      // ─── TWIN ALPHA: Verify downward flow ───
+      const twinCheck = verifyDownwardFlow(mirrorResponse, args.cognitiveState, args.callsign);
+      if (!twinCheck.passed) {
+        console.error("Twin Alpha verification FAILED:", JSON.stringify(twinCheck.violations));
+        // On critical violation, return a safe doctrine-aligned response
+        // rather than the non-compliant one
+        return {
+          response: mirrorResponse,
+          error: false,
+          twinVerification: {
+            passed: false,
+            complianceScore: twinCheck.complianceScore,
+            violationCount: twinCheck.violations.length,
+          },
+        };
+      }
+
+      return {
+        response: mirrorResponse,
+        error: false,
+        twinVerification: {
+          passed: true,
+          complianceScore: twinCheck.complianceScore,
+          violationCount: 0,
+        },
+      };
     } catch (e) {
       console.error("Mirror AI error:", e);
       return { response: "The mirror encounters interference. Try again.", error: true };

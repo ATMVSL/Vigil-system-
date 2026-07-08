@@ -35,6 +35,13 @@ Mirrors
 
 ## Implementation Status
 
-> **NOT YET IMPLEMENTED IN CODE** — This is a critical architectural gap.
-> The Twins system needs to be built as a verification layer that intercepts
-> both downward Doctrine flow and upward Intel return.
+> ✅ **IMPLEMENTED** in `convex/twins.ts`
+>
+> - **Twin Alpha** (downward): Deterministic verification of Mirror responses against
+>   forbidden patterns, cognitive state band alignment, and presence requirements.
+>   AI-powered deep verification available via `deepVerify` action.
+> - **Twin Beta** (upward): Identity scrambling (callsign, name, email, phone, SSN,
+>   address removal) and Intel verification for Doctrine preservation.
+> - Verification results recorded in `twinVerifications` table with full audit trail.
+> - Mirror `doctrineCompliance` score degrades on failed verifications.
+> - System health monitoring via `getSystemHealth` query.

@@ -410,6 +410,21 @@ const schema = defineSchema({
     updatedAt: v.number(),
   }).index("by_category", ["category"]),
 
+  // ─── CORE TWINS ─── Verification & balance layer
+  twinVerifications: defineTable({
+    mirrorId: v.id("mirrors"),
+    userId: v.id("users"),
+    twin: v.union(v.literal("alpha"), v.literal("beta")),
+    direction: v.union(v.literal("downward"), v.literal("upward")),
+    passed: v.boolean(),
+    complianceScore: v.number(),
+    violationCount: v.number(),
+    violations: v.string(), // JSON-encoded violation details
+    createdAt: v.number(),
+  }).index("by_mirror", ["mirrorId"])
+    .index("by_user", ["userId"])
+    .index("by_twin", ["twin"]),
+
   // ─── ACTIVITY LOG ─── System-wide audit trail
   activityLog: defineTable({
     userId: v.id("users"),

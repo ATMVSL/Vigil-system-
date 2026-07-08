@@ -171,4 +171,26 @@ All legal documents are encoded within the platform and available under Document
 
 ---
 
+## 📋 Spec Compliance
+
+Architecture compliance against `Ground_truth/` canonical specification:
+
+| Component | Spec File | Status |
+|-----------|-----------|--------|
+| Doctrine Engine | `VIGIL_DOCTRINE.md` | ✅ Implemented |
+| Founder Mirror | `VIGIL_FOUNDER_MIRROR.md` | ✅ Implemented |
+| Six Pillars | `VIGIL_SIX_PILLARS.md` | ✅ Implemented |
+| Waterfall Flow | `VIGIL_WATERFALL_FLOW.md` | ⚠️ Prompt-level only |
+| Mirror Instances | `VIGIL_MIRROR_INSTANCES.md` | ✅ Implemented |
+| Real-Time Engine | `VIGIL_REAL_TIME_ENGINE.md` | ✅ Implemented |
+| User Sovereignty | `VIGIL_USER_SOVEREIGNTY.md` | ✅ Implemented |
+| Serverless Deploy | `VIGIL_SERVERLESS_DEPLOYMENT.md` | ✅ Configured |
+| Core Twins | `VIGIL_TWINS.md` | ❌ Not yet implemented |
+| Verified Intel | `VIGIL_VERIFIED_INTEL.md` | ❌ Not yet implemented |
+| Learning Engine | `VIGIL_LEARNING_ENGINE.md` | ⚠️ Partial (baseline only) |
+
+> If code contradicts these specs, the **code is wrong**.
+
+---
+
 *VIGIL — Because identity is not negotiable.*

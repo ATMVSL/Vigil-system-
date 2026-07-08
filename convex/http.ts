@@ -10,8 +10,15 @@ auth.addHttpRoutes(http);
 declare const process: { env: Record<string, string | undefined> };
 
 // ─── CORS HEADERS ───
+// Uses ALLOWED_ORIGIN env var if set; falls back to "*" for local development.
+// Set ALLOWED_ORIGIN to your production domain (e.g., "https://vigil.yourdomain.com")
+// in the Convex dashboard before going live.
+function getAllowedOrigin(): string {
+  return process.env.ALLOWED_ORIGIN || "*";
+}
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": getAllowedOrigin(),
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Max-Age": "86400",

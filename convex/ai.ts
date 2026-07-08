@@ -103,10 +103,18 @@ export const gradeTrainingResponse = action({
         headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 400, temperature: 0.5 }),
       });
-      if (!response.ok) return { score: 0, feedback: "Evaluation system error. Try again.", error: true };
+      if (!response.ok) {
+        const err = await response.text();
+        console.error("Training grading error:", response.status, err);
+        if (response.status === 401) {
+          return { score: 0, feedback: "API key is invalid. Please update your OpenAI API key in Settings.", error: true };
+        }
+        return { score: 0, feedback: "Evaluation system error. Try again.", error: true };
+      }
       const data = await response.json();
       return { score: 0, feedback: data.choices[0].message.content, error: false };
-    } catch {
+    } catch (e) {
+      console.error("Training grading error:", e);
       return { score: 0, feedback: "Evaluation system error. Try again.", error: true };
     }
   },
@@ -141,7 +149,14 @@ export const evaluateSqlQuery = action({
         headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
       });
-      if (!response.ok) return { passed: false, feedback: "Evaluation error.", score: 0 };
+      if (!response.ok) {
+        const err = await response.text();
+        console.error("SQL evaluation error:", response.status, err);
+        if (response.status === 401) {
+          return { passed: false, feedback: "API key is invalid. Please update your OpenAI API key in Settings.", score: 0 };
+        }
+        return { passed: false, feedback: "Evaluation error.", score: 0 };
+      }
       const data = await response.json();
       try {
         const result = JSON.parse(data.choices[0].message.content);
@@ -149,7 +164,8 @@ export const evaluateSqlQuery = action({
       } catch {
         return { passed: false, feedback: data.choices[0].message.content, score: 0 };
       }
-    } catch {
+    } catch (e) {
+      console.error("SQL evaluation error:", e);
       return { passed: false, feedback: "Evaluation error.", score: 0 };
     }
   },
@@ -181,7 +197,14 @@ export const gradeAssessment = action({
         headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ model: "gpt-5.4", messages, max_tokens: 300, temperature: 0.3, response_format: { type: "json_object" } }),
       });
-      if (!response.ok) return { correct: false, feedback: "Grading error.", score: 0 };
+      if (!response.ok) {
+        const err = await response.text();
+        console.error("Assessment grading error:", response.status, err);
+        if (response.status === 401) {
+          return { correct: false, feedback: "API key is invalid. Please update your OpenAI API key in Settings.", score: 0 };
+        }
+        return { correct: false, feedback: "Grading error.", score: 0 };
+      }
       const data = await response.json();
       try {
         const result = JSON.parse(data.choices[0].message.content);
@@ -189,7 +212,8 @@ export const gradeAssessment = action({
       } catch {
         return { correct: false, feedback: data.choices[0].message.content, score: 0 };
       }
-    } catch {
+    } catch (e) {
+      console.error("Assessment grading error:", e);
       return { correct: false, feedback: "Grading error.", score: 0 };
     }
   },

@@ -99,7 +99,7 @@ http.route({
     try {
       // ─── TOOL RESOLUTION PHASE (non-streaming) ───
       // First, let the model call any tools it needs before streaming the response
-      let currentMessages: Array<Record<string, unknown>> = [...messages];
+      const currentMessages: Array<Record<string, unknown>> = [...messages];
       const MAX_TOOL_ROUNDS = 5;
       const toolCtx = { db: {} as any, userId: "" }; // Streaming endpoint has limited DB access
 

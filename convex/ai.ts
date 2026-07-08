@@ -106,7 +106,10 @@ export const mirrorChat = action({
         const choice = data.choices[0];
 
         // If the model wants to call tools, execute them and continue
-        if (choice.finish_reason === "tool_calls" && choice.message.tool_calls) {
+        if (
+          choice.finish_reason === "tool_calls" &&
+          choice.message.tool_calls
+        ) {
           currentMessages.push(choice.message);
 
           for (const toolCall of choice.message.tool_calls) {

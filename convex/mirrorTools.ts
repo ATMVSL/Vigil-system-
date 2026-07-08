@@ -18,7 +18,7 @@ export const MIRROR_TOOLS = [
           timezone: {
             type: "string",
             description:
-              'Timezone to use (default: America/Phoenix). Format: IANA timezone.',
+              "Timezone to use (default: America/Phoenix). Format: IANA timezone.",
           },
         },
         required: [],
@@ -153,7 +153,10 @@ export async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
   ctx: {
-    db: { query: Function; insert: Function };
+    db: {
+      query: (...args: unknown[]) => unknown;
+      insert: (...args: unknown[]) => unknown;
+    };
     userId: string;
   },
 ): Promise<string> {
@@ -232,7 +235,7 @@ function executeGetCurrentAwareness(timezone: string): string {
 }
 
 async function executeGetUserContext(ctx: {
-  db: { query: Function };
+  db: { query: (...args: unknown[]) => unknown };
   userId: string;
 }): Promise<string> {
   const profile = await ctx.db
@@ -281,8 +284,7 @@ function executeGetDoctrineReference(topic: string): string {
       endurance: {
         name: "Endurance",
         namesake: "SPC Hargis",
-        essence:
-          "The long transition, sustained engagement, showing up daily",
+        essence: "The long transition, sustained engagement, showing up daily",
         practical:
           "Career persistence, long-term goal tracking, habit formation",
       },
@@ -295,16 +297,14 @@ function executeGetDoctrineReference(topic: string): string {
       fortitude: {
         name: "Fortitude",
         namesake: "SGT Stampley",
-        essence:
-          "Strength when supports fall away, the last wall",
+        essence: "Strength when supports fall away, the last wall",
         practical: "Crisis management, resilience building, backup plans",
       },
       continuity: {
         name: "Continuity",
         namesake: "SPC Luna",
         essence: "Unbroken identity chain, no gaps in selfhood",
-        practical:
-          "Personal records, identity documentation, life narrative",
+        practical: "Personal records, identity documentation, life narrative",
       },
       presence: {
         name: "Presence",
@@ -359,16 +359,14 @@ function executeGetDoctrineReference(topic: string): string {
 }
 
 async function executeGetEvidenceLog(
-  ctx: { db: { query: Function }; userId: string },
+  ctx: { db: { query: (...args: unknown[]) => unknown }; userId: string },
   category: string | undefined,
   limit: number,
 ): Promise<string> {
   let q = ctx.db.query("evidenceEntries");
 
   if (category) {
-    q = q.withIndex("by_category", (idx: any) =>
-      idx.eq("category", category),
-    );
+    q = q.withIndex("by_category", (idx: any) => idx.eq("category", category));
   }
 
   const entries = await q.order("desc").take(limit);
@@ -396,7 +394,7 @@ async function executeGetEvidenceLog(
 }
 
 async function executeGetTrainingProgress(ctx: {
-  db: { query: Function };
+  db: { query: (...args: unknown[]) => unknown };
   userId: string;
 }): Promise<string> {
   const enrollments = await ctx.db
@@ -468,7 +466,7 @@ async function executeWebSearch(searchQuery: string): Promise<string> {
     }
 
     return JSON.stringify({ query: searchQuery, results });
-  } catch (error) {
+  } catch (_error) {
     return JSON.stringify({
       error: "Search temporarily unavailable",
       note: "The Mirror can still discuss this topic from training knowledge.",
@@ -477,7 +475,7 @@ async function executeWebSearch(searchQuery: string): Promise<string> {
 }
 
 async function executeCreateEvidence(
-  ctx: { db: { insert: Function }; userId: string },
+  ctx: { db: { insert: (...args: unknown[]) => unknown }; userId: string },
   title: string,
   content: string,
   category: string,
@@ -529,7 +527,7 @@ export async function executeMCPTool(
     });
     const result = await response.json();
     return JSON.stringify(result);
-  } catch (error) {
+  } catch (_error) {
     return JSON.stringify({ error: `MCP tool ${toolName} failed` });
   }
 }

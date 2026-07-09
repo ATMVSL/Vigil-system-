@@ -190,7 +190,7 @@ Architecture compliance against `Ground_truth/` canonical specification:
 | Learning Engine | `VIGIL_LEARNING_ENGINE.md` | ⚠️ Partial (baseline only) |
 
 > If code contradicts these specs, the **code is wrong**.
-
+VIGIL Adapative Engine 
 ---
 
 *VIGIL — Because identity is not negotiable.*

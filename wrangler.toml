@@ -1,0 +1,33 @@
+name = "vigil-system"
+type = "javascript"
+main = "src/index.tsx"
+compatibility_date = "2026-07-11"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[env.production]
+name = "vigil-system-prod"
+routes = [
+  { pattern = "vigil-system.pages.dev", zone_name = "vigilsysllc.com" }
+]
+vars = { ENVIRONMENT = "production" }
+
+[env.staging]
+name = "vigil-system-staging"
+routes = [
+  { pattern = "staging.vigil-system.pages.dev", zone_name = "vigilsysllc.com" }
+]
+vars = { ENVIRONMENT = "staging" }
+
+[build]
+command = "npm run build"
+cwd = "./"
+watch_paths = ["src/**/*.ts", "src/**/*.tsx", "convex/**/*.ts"]
+
+[build.upload]
+format = "service-worker"
+
+[[env.production.triggers.crons]]
+cron = "0 0 * * *"

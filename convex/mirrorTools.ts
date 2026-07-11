@@ -43,7 +43,7 @@ export const MIRROR_TOOLS = [
     function: {
       name: "get_doctrine_reference",
       description:
-        "Look up specific VIGIL doctrine, pillar details, axiom definitions, or training content. Use when the user asks about doctrine or when you need to ground a response in specific VIGIL principles.",
+        "Look up specific VIGIL doctrine, pillar details, axiom definitions, or training content. Use when the user asks about doctrine or when you need to ground a response in specific VIGIL prin[...]",
       parameters: {
         type: "object",
         properties: {
@@ -98,7 +98,7 @@ export const MIRROR_TOOLS = [
     function: {
       name: "web_search",
       description:
-        "Search the web for current, real-time information. Use for veteran resources, current events relevant to the user, local services, job listings, or any factual lookup the user needs. Respects the Cardinal Axiom — results are for the user only.",
+        "Search the web for current, real-time information. Use for veteran resources, current events relevant to the user, local services, job listings, or any factual lookup the user needs. Res[...]",
       parameters: {
         type: "object",
         properties: {
@@ -116,7 +116,7 @@ export const MIRROR_TOOLS = [
     function: {
       name: "create_evidence_entry",
       description:
-        "Record a new entry in the user's evidence log. Use when the user shares something significant — a milestone, achievement, reflection, or important observation that should be preserved in their immutable record.",
+        "Record a new entry in the user's evidence log. Use when the user shares something significant — a milestone, achievement, reflection, or important observation that should be preserved [...]",
       parameters: {
         type: "object",
         properties: {
@@ -149,16 +149,25 @@ export const MIRROR_TOOLS = [
 // ─── TOOL EXECUTION ENGINE ───
 // Executes tool calls and returns results to the model
 
+type DbContext = {
+  db: {
+    query: (table: string) => {
+      filter: (fn: (q: any) => any) => any;
+      withIndex: (index: string, fn: (q: any) => any) => any;
+      order: (dir: string) => any;
+      first: () => Promise<any>;
+      take: (n: number) => Promise<any[]>;
+      collect: () => Promise<any[]>;
+    };
+    insert: (table: string, doc: Record<string, unknown>) => Promise<string>;
+  };
+  userId: string;
+};
+
 export async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
-  ctx: {
-    db: {
-      query: (...args: unknown[]) => unknown;
-      insert: (...args: unknown[]) => unknown;
-    };
-    userId: string;
-  },
+  ctx: DbContext,
 ): Promise<string> {
   switch (toolName) {
     case "get_current_awareness":
@@ -234,26 +243,23 @@ function executeGetCurrentAwareness(timezone: string): string {
   });
 }
 
-async function executeGetUserContext(ctx: {
-  db: { query: (...args: unknown[]) => unknown };
-  userId: string;
-}): Promise<string> {
-  const profile = await ctx.db
+async function executeGetUserContext(ctx: DbContext): Promise<string> {
+  const profile = (await ctx.db
     .query("userProfiles")
     .filter((q: any) => q.eq(q.field("userId"), ctx.userId))
-    .first();
+    .first()) as any;
 
-  const recentReflections = await ctx.db
+  const recentReflections = (await ctx.db
     .query("reflections")
     .withIndex("by_user", (q: any) => q.eq("userId", ctx.userId))
     .order("desc")
-    .take(5);
+    .take(5)) as any[];
 
-  const mirror = await ctx.db
+  const mirror = (await ctx.db
     .query("mirrors")
     .withIndex("by_user", (q: any) => q.eq("userId", ctx.userId))
     .order("desc")
-    .first();
+    .first()) as any;
 
   return JSON.stringify({
     callsign: profile?.callsign || "Unknown",
@@ -338,7 +344,7 @@ function executeGetDoctrineReference(topic: string): string {
     waterfall:
       "Self-Filling Waterfall Architecture: Doctrine Engine → State-Band Logic → User Baseline → Expressive Model. Knowledge flows down, never up.",
     academy_courses:
-      "VIGIL Academy offers 6 courses with 78 lessons, AI-graded assessments, SQL Lab (15 challenges), and Infra Lab. Courses cover doctrine, mirror operations, the cognitive loop, evidence management, and practical skills.",
+      "VIGIL Academy offers 6 courses with 78 lessons, AI-graded assessments, SQL Lab (15 challenges), and Infra Lab. Courses cover doctrine, mirror operations, the cognitive loop, evidence manag[...]",
   };
 
   const key = topic.toLowerCase().replace(/\s+/g, "_");
@@ -359,17 +365,19 @@ function executeGetDoctrineReference(topic: string): string {
 }
 
 async function executeGetEvidenceLog(
-  ctx: { db: { query: (...args: unknown[]) => unknown }; userId: string },
+  ctx: DbContext,
   category: string | undefined,
   limit: number,
 ): Promise<string> {
-  let q = ctx.db.query("evidenceEntries");
+  let queryResult: any = ctx.db.query("evidenceEntries");
 
   if (category) {
-    q = q.withIndex("by_category", (idx: any) => idx.eq("category", category));
+    queryResult = queryResult.withIndex("by_category", (idx: any) =>
+      idx.eq("category", category),
+    );
   }
 
-  const entries = await q.order("desc").take(limit);
+  const entries = await queryResult.order("desc").take(limit);
 
   const userEntries = entries.filter(
     (e: { userId: string }) => e.userId === ctx.userId,
@@ -393,24 +401,21 @@ async function executeGetEvidenceLog(
   });
 }
 
-async function executeGetTrainingProgress(ctx: {
-  db: { query: (...args: unknown[]) => unknown };
-  userId: string;
-}): Promise<string> {
-  const enrollments = await ctx.db
+async function executeGetTrainingProgress(ctx: DbContext): Promise<string> {
+  const enrollments = (await ctx.db
     .query("enrollments")
     .filter((q: any) => q.eq(q.field("userId"), ctx.userId))
-    .collect();
+    .collect()) as any[];
 
-  const completedLessons = await ctx.db
+  const completedLessons = (await ctx.db
     .query("lessonProgress")
     .filter((q: any) => q.eq(q.field("userId"), ctx.userId))
-    .collect();
+    .collect()) as any[];
 
-  const certifications = await ctx.db
+  const certifications = (await ctx.db
     .query("certifications")
     .filter((q: any) => q.eq(q.field("userId"), ctx.userId))
-    .collect();
+    .collect()) as any[];
 
   return JSON.stringify({
     courses_enrolled: enrollments.length,
@@ -435,7 +440,7 @@ async function executeWebSearch(searchQuery: string): Promise<string> {
     const response = await fetch(
       `https://api.duckduckgo.com/?q=${encodeURIComponent(searchQuery)}&format=json&no_html=1&skip_disambig=1`,
     );
-    const data = await response.json();
+    const data = (await response.json()) as any;
 
     const results: Array<{ title: string; snippet: string; url: string }> = [];
 
@@ -475,18 +480,18 @@ async function executeWebSearch(searchQuery: string): Promise<string> {
 }
 
 async function executeCreateEvidence(
-  ctx: { db: { insert: (...args: unknown[]) => unknown }; userId: string },
+  ctx: DbContext,
   title: string,
   content: string,
   category: string,
 ): Promise<string> {
-  const id = await ctx.db.insert("evidenceEntries", {
+  const id = (await ctx.db.insert("evidenceEntries", {
     userId: ctx.userId,
     title,
     content,
     category,
     status: "verified",
-  });
+  })) as string;
 
   return JSON.stringify({
     success: true,

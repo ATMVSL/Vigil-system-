@@ -1,6 +1,6 @@
 # VIGIL — Veteran Identity Garrison for Intentional Living
 
-**VIGIL Academy** is a proprietary training and cognitive engagement platform built on the SELF Doctrine framework. It provides structured learning, real-time AI-powered mentoring, and progressive certification for veterans and operators.
+**VIGIL Academy** is a proprietary training and cognitive engagement platform built on the SELF Doctrine framework. It provides structured learning, real-time AI-powered mentoring, and progressive [...]
 
 > *"Knowledge flows down, never up."* — Cardinal Axiom
 
@@ -47,7 +47,7 @@ A real-time cognitive engagement system — not therapy, not a chatbot, but a **
 
 ---
 
-## 🔐 Role-Based Access
+## ��� Role-Based Access
 
 ```
 Operator → Certified → Admin → Superadmin → Founder
@@ -70,6 +70,15 @@ Operator → Certified → Admin → Superadmin → Founder
 | Voice | OpenAI Whisper (STT), OpenAI TTS (text-to-speech) |
 | Auth | Email/OTP via Convex Auth |
 | Hosting | Vercel (frontend), Convex Cloud (backend) |
+
+---
+
+## 🔎 Preview
+A live preview of the deployed Mirror is available at:
+
+https://preview-vigil-mirror-3ca2ac54.viktor.space/
+
+This preview is deployed to Viktor Spaces (branch: feature/mirror-realtime-tools) and demonstrates the Mirror's real-time tooling and streaming features.
 
 ---
 

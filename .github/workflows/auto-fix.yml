@@ -1,0 +1,30 @@
+name: 🔧 Auto-Fix & Format
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+      
+      - run: npm ci
+      - run: npm run format
+      - run: npm run typecheck || true
+      
+      - name: Commit fixes
+        run: |
+          git config user.name "VIGIL Agent"
+          git config user.email "vigil@vigilsysllc.com"
+          git add -A
+          git commit -m "🤖 Auto-format code" || true
+          git push || true

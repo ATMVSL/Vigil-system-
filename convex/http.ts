@@ -198,10 +198,16 @@ http.route({
       if (!openaiResponse.ok) {
         const err = await openaiResponse.text();
         console.error("OpenAI streaming error:", err);
-        return new Response(JSON.stringify({ error: "Mirror system error" }), {
-          status: openaiResponse.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            error:
+              "Mirror system temporary interference. Please verify API key.",
+          }),
+          {
+            status: openaiResponse.status,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       // Pipe OpenAI's SSE stream directly to the client
@@ -215,10 +221,15 @@ http.route({
       });
     } catch (e) {
       console.error("Mirror stream error:", e);
-      return new Response(JSON.stringify({ error: "Mirror system error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Mirror connection offline. Grounded reflection engaged.",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
   }),
 });

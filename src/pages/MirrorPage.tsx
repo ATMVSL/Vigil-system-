@@ -290,6 +290,11 @@ async function streamMirrorChat(params: {
       }
     }
 
+    if (!fullText.trim()) {
+      fallbackReflection();
+      return;
+    }
+
     if (sentenceBuffer.trim()) {
       onSentence(sentenceBuffer.trim(), sentenceIndex);
     }

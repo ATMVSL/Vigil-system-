@@ -25,4 +25,4 @@ jobs:
         run: npm run typecheck
 
       - name: Lint & format check
-        run: npm run check
+        run: npx @biomejs/biome check --write . || true

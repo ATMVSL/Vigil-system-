@@ -163,7 +163,7 @@ function parseAssessmentContent(content: string): {
   return { intro: intro.trim(), questions };
 }
 
-function LessonVoiceButton({ text }: { text: string }) {
+export function LessonVoiceButton({ text }: { text: string }) {
   const generateSpeech = useAction(api.ai.generateSpeech);
   const voicePreference = useQuery(api.ai.getVoicePreference);
   const [playing, setPlaying] = useState(false);
@@ -228,7 +228,7 @@ function LessonVoiceButton({ text }: { text: string }) {
   );
 }
 
-function AssessmentQuiz({ content }: { content: string }) {
+export function AssessmentQuiz({ content }: { content: string }) {
   const { intro, questions } = parseAssessmentContent(content);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});

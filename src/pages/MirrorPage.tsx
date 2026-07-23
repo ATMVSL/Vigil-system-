@@ -716,6 +716,33 @@ export function MirrorPage() {
   const reviewApplicant = useMutation(api.roles.reviewApplicant);
   const [mirrorCreated, setMirrorCreated] = useState(false);
 
+  // ─── Offline mode: if Convex doesn't respond in 5s, use local doctrine mode ───
+  const [offlineMode, setOfflineMode] = useState(false);
+  useEffect(() => {
+    if (mirror !== undefined) return; // Loaded — no timeout needed
+    const timer = setTimeout(() => {
+      if (mirror === undefined) setOfflineMode(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [mirror]);
+
+  // Synthetic offline mirror for when backend is unreachable
+  const offlineMirror = offlineMode
+    ? {
+        _id: "offline" as any,
+        callsign: "Operator",
+        status: "active" as const,
+        cognitiveState: "stable" as const,
+        totalReflections: 0,
+        doctrineCompliance: 100,
+        baselineEstablished: false,
+        createdAt: Date.now(),
+      }
+    : null;
+
+  // Use real mirror if available, offline synthetic if in offline mode
+  const activeMirror = mirror ?? offlineMirror;
+
   // Mode & state
   const [mode, setMode] = useState<"voice" | "text">("voice");
   const [sessionEntries, setSessionEntries] = useState<MirrorEntry[]>([]);
@@ -750,12 +777,12 @@ export function MirrorPage() {
   // ─── CORE: Process spoken or typed input through the Mirror ───
   const processInput = useCallback(
     async (content: string) => {
-      if (!content.trim() || !mirror || processing) return;
+      if (!content.trim() || !activeMirror || processing) return;
       setProcessing(true);
 
       const now = Date.now();
       const trimmed = content.trim();
-      const currentState = mirror.cognitiveState || "stable";
+      const currentState = activeMirror.cognitiveState || "stable";
 
       // Stop any currently playing audio
       audioQueueRef.current?.stop();
@@ -807,7 +834,7 @@ export function MirrorPage() {
       await streamMirrorChat({
         content: trimmed,
         cognitiveState: currentState,
-        callsign: mirror.callsign,
+        callsign: activeMirror.callsign,
         recentReflections: recentContext,
         voiceMode: isVoiceMode,
         onToken: (_token, fullText) => {
@@ -851,19 +878,21 @@ export function MirrorPage() {
             setPhase("idle");
           }
 
-          // Save reflection for continuity chain
-          createReflection({
-            title: "Mirror Session",
-            content: trimmed,
-            pillar: "presence" as "structure",
-            cognitiveState: currentState as "stable",
-          }).catch(() => {});
+          // Save reflection for continuity chain (silently skip if offline)
+          if (!offlineMode) {
+            createReflection({
+              title: "Mirror Session",
+              content: trimmed,
+              pillar: "presence" as "structure",
+              cognitiveState: currentState as "stable",
+            }).catch(() => {});
+          }
 
           setProcessing(false);
         },
         onError: _error => {
           const fallbackText = generateFallbackDoctrineReflection(
-            mirror?.callsign || "Operator",
+            activeMirror?.callsign || "Operator",
             currentState,
             trimmed,
           );
@@ -885,11 +914,12 @@ export function MirrorPage() {
       });
     },
     [
-      mirror,
+      activeMirror,
       processing,
       mode,
       sessionEntries,
       autoListen,
+      offlineMode,
       createReflection,
       getVoice,
     ],
@@ -973,12 +1003,16 @@ export function MirrorPage() {
     }
   };
 
-  if (mirror === undefined)
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Loading...
-      </div>
-    );
+  // Show loading while waiting for Convex — but with a 5s timeout to offline mode
+  if (activeMirror === undefined || activeMirror === null) {
+    if (!offlineMode) {
+      return (
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          Loading...
+        </div>
+      );
+    }
+  }
 
   // Gate: pending approval
   const approvalStatus =
@@ -1025,23 +1059,26 @@ export function MirrorPage() {
     );
   }
 
-  if (mirror === null && !mirrorCreated)
-    return <CreateMirrorForm onCreated={() => setMirrorCreated(true)} />;
-  if (mirrorCreated && mirror === null)
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Initializing mirror...
-      </div>
-    );
+  // In offline mode, skip the create/init gates — use the synthetic mirror
+  if (!offlineMode) {
+    if (mirror === null && !mirrorCreated)
+      return <CreateMirrorForm onCreated={() => setMirrorCreated(true)} />;
+    if (mirrorCreated && mirror === null)
+      return (
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          Initializing mirror...
+        </div>
+      );
+  }
 
   const statusColor =
-    mirror?.status === "active"
+    activeMirror?.status === "active"
       ? "text-success"
-      : mirror?.status === "dormant"
+      : activeMirror?.status === "dormant"
         ? "text-chart-2"
         : "text-destructive";
   const currentStateMeta =
-    cognitiveStateMeta[mirror?.cognitiveState || "stable"];
+    cognitiveStateMeta[activeMirror?.cognitiveState || "stable"];
 
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-4rem)]">
@@ -1127,18 +1164,18 @@ export function MirrorPage() {
                   </div>
                   <div className="min-w-0">
                     <h2 className="text-base font-bold tracking-wide truncate">
-                      {mirror.callsign}
+                      {activeMirror?.callsign || "Operator"}
                     </h2>
                     <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
                       <span>
                         <strong className="text-foreground">
-                          {mirror.totalReflections}
+                          {activeMirror?.totalReflections ?? 0}
                         </strong>{" "}
                         reflections
                       </span>
                       <span>
                         <strong className="text-foreground">
-                          {mirror.doctrineCompliance}%
+                          {activeMirror?.doctrineCompliance ?? 100}%
                         </strong>{" "}
                         compliance
                       </span>

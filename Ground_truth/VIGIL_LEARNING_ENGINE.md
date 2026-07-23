@@ -19,33 +19,39 @@
 User interacts with Mirror
        │
        ▼
-Mirror captures patterns (reflections, cognitive states)
+1. CAPTURE: Mirror captures patterns (reflections, cognitive states)
        │
        ▼
-Patterns are identity-scrambled
+2. SCRAMBLE: Patterns are identity-scrambled & PII stripped
        │
        ▼
-Scrambled patterns are verified (proven/tested)
+3. VERIFY: Scrambled patterns are verified (statistical & human sign-off)
        │
        ▼
-Verified patterns improve VIGIL
+4. APPLY: Verified patterns improve personal Mirror (per-user sovereignty)
        │
        ✗ Doctrine remains unchanged
        ✗ No user can be identified
        ✗ No cross-user contamination
 ```
 
-## Baseline Establishment
+## Baseline Establishment & Drift Monitoring
 
-After 3+ reflections, a Mirror's baseline is established. This baseline:
+After 3+ reflections, a Mirror's baseline is established (`detectDrift` API):
 
 - Represents the user's normal cognitive state
-- Enables drift detection (deviation from baseline)
-- Grows more accurate with continued interaction
+- Enables drift detection (% deviation from baseline)
+- Triggers Anchor Recall if drift exceeds critical thresholds
 - Is sovereign to the user — never shared
 
 ## Implementation Status
 
-> **PARTIALLY IMPLEMENTED** — Baseline establishment exists (after 3 reflections).
-> Cognitive state tracking exists. The full learning pipeline (identity scrambling,
-> verification, and system improvement) is not yet built.
+> **FULL IMPLEMENTATION COMPLETE** — The complete 4-stage Learning Engine pipeline (`capture` → `scramble` → `verify` → `apply`) is implemented in `convex/learningEngine.ts`.
+
+### Backend API Endpoints (`convex/learningEngine.ts`)
+- `getLearningPipelineStatus`: Retrieves baseline status and reflection count.
+- `captureInteraction`: Stage 1 — Captures interaction and checks 3+ reflection baseline.
+- `scramblePattern`: Stage 2 — Strips PII and creates non-reversible pattern hash.
+- `verifyPattern`: Stage 3 — Conducts verification & enforces zero-doctrine-rewrite rule.
+- `applyPattern`: Stage 4 — Applies improvement strictly to operator's own Mirror.
+- `detectDrift`: Monitors drift score against user baseline.

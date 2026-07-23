@@ -592,12 +592,50 @@ const schema = defineSchema({
       v.literal("certification"),
       v.literal("community"),
       v.literal("documentation"),
+      v.literal("learning_engine"),
     ),
     details: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_module", ["module"])
     .index("by_user", ["userId"]),
+
+  // ─── LEARNING ENGINE PIPELINE (capture → scramble → verify → apply) ───
+  learningPipeline: defineTable({
+    userId: v.id("users"),
+    mirrorId: v.id("mirrors"),
+    stage: v.union(
+      v.literal("capture"),
+      v.literal("scramble"),
+      v.literal("verify"),
+      v.literal("apply"),
+    ),
+    baselineEstablished: v.boolean(),
+    reflectionCount: v.number(),
+    driftScore: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("verified"),
+      v.literal("applied"),
+      v.literal("rejected"),
+    ),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_mirror", ["mirrorId"])
+    .index("by_stage", ["stage"]),
+
+  // ─── SCRAMBLED INTEL ─── Anonymized, non-identifying pattern metrics
+  scrambledIntel: defineTable({
+    patternHash: v.string(),
+    cognitiveState: v.string(),
+    scrambledMetrics: v.string(), // JSON string of anonymized pattern metrics
+    isVerified: v.boolean(),
+    verifiedBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+  })
+    .index("by_hash", ["patternHash"])
+    .index("by_verified", ["isVerified"]),
 });
 
 export default schema;

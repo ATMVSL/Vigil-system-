@@ -21,6 +21,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { RiseCoursePlayer } from "@/components/RiseCoursePlayer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +34,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { RiseCoursePlayer } from "@/components/RiseCoursePlayer";
 
 const categoryIcons: Record<string, React.ReactNode> = {
   self_doctrine: <Users className="size-5" />,
@@ -163,7 +163,7 @@ function parseAssessmentContent(content: string): {
   return { intro: intro.trim(), questions };
 }
 
-function LessonVoiceButton({ text }: { text: string }) {
+export function LessonVoiceButton({ text }: { text: string }) {
   const generateSpeech = useAction(api.ai.generateSpeech);
   const voicePreference = useQuery(api.ai.getVoicePreference);
   const [playing, setPlaying] = useState(false);
@@ -228,7 +228,7 @@ function LessonVoiceButton({ text }: { text: string }) {
   );
 }
 
-function AssessmentQuiz({ content }: { content: string }) {
+export function AssessmentQuiz({ content }: { content: string }) {
   const { intro, questions } = parseAssessmentContent(content);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
@@ -473,7 +473,7 @@ export function AcademyPage() {
 
   // ─── LESSON READER VIEW (RISE 360 INTERACTIVE PLAYER) ───
   if (selectedLesson && selectedCourseData) {
-    const enrollment = enrollments?.find((e) => e.courseId === selectedCourse);
+    const enrollment = enrollments?.find(e => e.courseId === selectedCourse);
 
     return (
       <RiseCoursePlayer
@@ -493,7 +493,11 @@ export function AcademyPage() {
             });
             if (nextProgress >= 100) await checkPromotion();
           }
-          if (lessons && selectedLessonIdx !== null && selectedLessonIdx < lessons.length - 1) {
+          if (
+            lessons &&
+            selectedLessonIdx !== null &&
+            selectedLessonIdx < lessons.length - 1
+          ) {
             setSelectedLessonIdx(selectedLessonIdx + 1);
           } else {
             setSelectedLessonIdx(null);

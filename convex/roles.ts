@@ -290,7 +290,7 @@ export const getPendingApplicants = query({
       .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
-    if (!myProfile || myProfile.role !== "founder") return [];
+    if (myProfile?.role !== "founder") return [];
 
     // Get all profiles with pending status
     const allProfiles = await ctx.db.query("userProfiles").collect();
@@ -330,7 +330,7 @@ export const reviewApplicant = mutation({
       .withIndex("by_user", q => q.eq("userId", userId))
       .first();
 
-    if (!myProfile || myProfile.role !== "founder") {
+    if (myProfile?.role !== "founder") {
       throw new Error("Only the Founder can approve or deny applicants");
     }
 

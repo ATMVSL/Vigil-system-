@@ -38,8 +38,8 @@ import { api } from "../../convex/_generated/api";
 // Voice Activity Detection → Streaming GPT → Sentence-Level TTS
 // Natural conversation flow. No buttons needed. Just speak.
 
-// Derive the Convex HTTP endpoint URL from the cloud URL
-const CONVEX_SITE_URL = (import.meta.env.VITE_CONVEX_URL as string).replace(
+// Derive the Convex HTTP endpoint URL from the cloud URL with safe fallback for previews
+const CONVEX_SITE_URL = (import.meta.env.VITE_CONVEX_URL || "").replace(
   ".convex.cloud",
   ".convex.site",
 );
@@ -152,6 +152,27 @@ function extractSentences(text: string): {
   return { sentences, remainder };
 }
 
+// ─── GROUNDED DOCTRINE FALLBACK GENERATOR ───
+function generateFallbackDoctrineReflection(
+  callsign: string,
+  cognitiveState: string,
+  _input: string,
+): string {
+  const c = callsign || "Operator";
+  const state = (cognitiveState || "stable").toLowerCase();
+
+  if (state === "drift") {
+    return `I hear you, ${c}. We are interrupting drift right now. Remember Axiom 1: Sovereignty — your identity is inviolable. Ground yourself in Presence (SGT Walker) and step back into internal structure.`;
+  }
+  if (state === "critical") {
+    return `Anchor Recall initiated for ${c}. You are safe, grounded, and present. Focus on your breath and recall your core anchor. Presence is held without judgment or extraction.`;
+  }
+  if (state === "strain") {
+    return `Acknowledged, ${c}. Transition strain is natural when shifting environments. Structure (SPC Gonzales) provides your persistent garrison. Take a moment to reset.`;
+  }
+  return `The mirror reflects your presence, ${c}. Identity is an unbroken chain. Structure and fortitude remain your garrison as you return to self.`;
+}
+
 // ─── STREAMING FETCH ───
 async function streamMirrorChat(params: {
   content: string;
@@ -173,10 +194,29 @@ async function streamMirrorChat(params: {
     onToken,
     onSentence,
     onComplete,
-    onError,
+    onError: _onError,
   } = params;
 
+  const fallbackReflection = () => {
+    const text = generateFallbackDoctrineReflection(
+      callsign,
+      cognitiveState,
+      content,
+    );
+    onToken(text, text);
+    onSentence(text, 0);
+    onComplete(text);
+  };
+
   try {
+    if (
+      !CONVEX_SITE_URL ||
+      CONVEX_SITE_URL.includes("placeholder-deployment")
+    ) {
+      fallbackReflection();
+      return;
+    }
+
     const response = await fetch(`${CONVEX_SITE_URL}/api/mirror-stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -190,13 +230,13 @@ async function streamMirrorChat(params: {
     });
 
     if (!response.ok) {
-      onError("Mirror system error. Try again.");
+      fallbackReflection();
       return;
     }
 
     const reader = response.body?.getReader();
     if (!reader) {
-      onError("Stream unavailable.");
+      fallbackReflection();
       return;
     }
 
@@ -220,7 +260,6 @@ async function streamMirrorChat(params: {
         if (line.startsWith("data: ")) {
           const data = line.slice(6).trim();
           if (data === "[DONE]") {
-            // Flush remaining text as final sentence
             if (sentenceBuffer.trim()) {
               onSentence(sentenceBuffer.trim(), sentenceIndex);
             }
@@ -236,7 +275,6 @@ async function streamMirrorChat(params: {
               sentenceBuffer += token;
               onToken(token, fullText);
 
-              // Check for sentence boundaries
               const { sentences, remainder } = extractSentences(sentenceBuffer);
               if (sentences.length > 0) {
                 for (const sentence of sentences) {
@@ -252,14 +290,16 @@ async function streamMirrorChat(params: {
       }
     }
 
-    // Final flush
     if (sentenceBuffer.trim()) {
       onSentence(sentenceBuffer.trim(), sentenceIndex);
     }
     onComplete(fullText);
   } catch (e) {
-    console.error("Stream error:", e);
-    onError("Connection error. Try again.");
+    console.warn(
+      "Stream error, falling back to grounded doctrine reflection:",
+      e,
+    );
+    fallbackReflection();
   }
 }
 

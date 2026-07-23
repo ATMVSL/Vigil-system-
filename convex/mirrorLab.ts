@@ -38,13 +38,13 @@ export const recordMirrorLabAttempt = mutation({
 });
 
 export const getMirrorLabLogs = query({
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
     return await ctx.db
       .query("mirrorLabLogs")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .order("desc")
       .take(20);
   },

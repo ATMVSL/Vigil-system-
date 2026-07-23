@@ -8,6 +8,7 @@ import {
   AcademyPage,
   AdminPage,
   CertificationPage,
+  CohortPage,
   CommunityPage,
   DashboardPage,
   DoctrinePage,
@@ -17,13 +18,13 @@ import {
   InfraLabPage,
   LandingPage,
   LoginPage,
+  MirrorLabPage,
   MirrorPage,
+  SandboxPage,
   SettingsPage,
   SignupPage,
   SqlLabPage,
   TrainingPage,
-  CohortPage,
-  MirrorLabPage,
 } from "@/pages";
 
 export function ProductAuthRoutes() {
@@ -44,6 +45,7 @@ export function ProductAuthRoutes() {
           <Route path="/mirror" element={<MirrorPage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/academy" element={<AcademyPage />} />
+          <Route path="/sandbox" element={<SandboxPage />} />
           <Route path="/training" element={<TrainingPage />} />
           <Route path="/sql-lab" element={<SqlLabPage />} />
           <Route path="/infra-lab" element={<InfraLabPage />} />

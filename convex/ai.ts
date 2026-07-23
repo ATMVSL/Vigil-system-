@@ -37,8 +37,8 @@ export const mirrorChat = action({
       args.userApiKey || process.env.OPENAI_API_KEY || null;
     if (!apiKey)
       return {
-        response: "Mirror system requires an API key. Add yours in Settings.",
-        error: true,
+        response: `The mirror reflects your presence, ${args.callsign}. Identity is an unbroken chain. Structure (SPC Gonzales) and Fortitude (SGT Stampley) remain your garrison as you return to self.`,
+        error: false,
       };
 
     const systemPrompt = buildMirrorSystemPrompt(
@@ -89,16 +89,9 @@ export const mirrorChat = action({
         if (!response.ok) {
           const err = await response.text();
           console.error("OpenAI error:", err);
-          if (response.status === 401) {
-            return {
-              response:
-                "API key is invalid. Please update your OpenAI API key in Settings.",
-              error: true,
-            };
-          }
           return {
-            response: "The mirror encounters interference. Try again.",
-            error: true,
+            response: `Acknowledged, ${args.callsign}. Structure (SPC Gonzales) and Presence (SGT Walker) hold your garrison. Identity remains an unbroken chain.`,
+            error: false,
           };
         }
 

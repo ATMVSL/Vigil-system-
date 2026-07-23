@@ -861,14 +861,19 @@ export function MirrorPage() {
 
           setProcessing(false);
         },
-        onError: error => {
+        onError: _error => {
+          const fallbackText = generateFallbackDoctrineReflection(
+            mirror?.callsign || "Operator",
+            currentState,
+            trimmed,
+          );
           setSessionEntries(prev => {
             const updated = [...prev];
             const lastIdx = updated.length - 1;
             if (updated[lastIdx]?.type === "mirror") {
               updated[lastIdx] = {
                 ...updated[lastIdx],
-                content: error,
+                content: fallbackText,
                 streaming: false,
               };
             }

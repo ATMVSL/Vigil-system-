@@ -1,0 +1,32 @@
+name: ⚡ VIGIL Task Execution Agent
+
+on:
+  issues:
+    types: [opened, assigned]
+  issue_comment:
+    types: [created]
+
+jobs:
+  agent-task:
+    name: GitHub Task Agent Handler
+    runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, '@vigil-agent') || contains(github.event.issue.body, '@vigil-agent')
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Acknowledge Task
+        run: |
+          echo "VIGIL Agent acknowledged issue #${{ github.event.issue.number }}."
+          echo "Executing automated repository health verification..."
+
+      - name: Install & Verify
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npx vite build

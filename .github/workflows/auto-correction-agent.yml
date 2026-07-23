@@ -1,0 +1,39 @@
+name: 🤖 VIGIL Auto-Correction Agent
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  auto-correct:
+    name: Automated Code Correction & Formatting
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Auto-Format & Fix Lint Issues
+        run: npx @biomejs/biome check --write . || true
+
+      - name: Commit Auto-Corrections
+        run: |
+          git config --global user.name "VIGIL Auto-Correction Agent"
+          git config --global user.email "agent@vigilsysllc.com"
+          git add -A
+          git diff-index --quiet HEAD || git commit -m "🤖 [VIGIL Agent] Applied automated code corrections & formatting"
+          git push

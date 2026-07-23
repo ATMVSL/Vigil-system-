@@ -38,7 +38,6 @@ export function OfflineSyncIndicator() {
     for (const r of pending) {
       try {
         await createReflection({
-          callsign: r.callsign,
           title: "Offline Reflection Sync",
           content: r.content,
           pillar: r.pillar as any,

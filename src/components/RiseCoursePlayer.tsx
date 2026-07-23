@@ -308,7 +308,14 @@ export function RiseCoursePlayer({
               return (
                 <div
                   key={idx}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => toggleFlip(idx)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      toggleFlip(idx);
+                    }
+                  }}
                   className={`h-36 p-4 rounded-xl border cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center shadow-sm select-none ${
                     isFlipped
                       ? "bg-primary/10 border-primary/40 text-foreground"

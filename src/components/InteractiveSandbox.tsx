@@ -360,10 +360,19 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
             {savedProjects.map((p, idx) => (
               <div
                 key={idx}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   setName(p.name);
                   setTemplate(p.template);
                   setCode(p.code);
+                }}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    setName(p.name);
+                    setTemplate(p.template);
+                    setCode(p.code);
+                  }
                 }}
                 className="p-3 rounded-lg border border-border/60 bg-muted/20 hover:border-primary/40 cursor-pointer transition-all text-xs"
               >

@@ -165,3 +165,14 @@ export const getMyExamAttempts = query({
       .collect();
   },
 });
+
+export const verifyCertificate = query({
+  args: { certificateNumber: v.string() },
+  handler: async (ctx, args) => {
+    const cert = await ctx.db
+      .query("certifications")
+      .filter(q => q.eq(q.field("certificateNumber"), args.certificateNumber))
+      .first();
+    return cert;
+  },
+});

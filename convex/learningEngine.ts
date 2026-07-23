@@ -212,7 +212,7 @@ export const applyPattern = mutation({
 // ─── DRIFT DETECTION & MONITORING ───
 export const detectDrift = query({
   args: { mirrorId: v.id("mirrors") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, _args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return { driftIndex: 0, status: "stable" };
 

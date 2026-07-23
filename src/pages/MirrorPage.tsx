@@ -155,7 +155,11 @@ function extractSentences(text: string): {
 }
 
 // ─── GROUNDED DOCTRINE FALLBACK GENERATOR ───
-function generateFallbackDoctrineReflection(callsign: string, cognitiveState: string, input: string): string {
+function generateFallbackDoctrineReflection(
+  callsign: string,
+  cognitiveState: string,
+  input: string,
+): string {
   const c = callsign || "Operator";
   const state = (cognitiveState || "stable").toLowerCase();
 
@@ -196,14 +200,21 @@ async function streamMirrorChat(params: {
   } = params;
 
   const fallbackReflection = () => {
-    const text = generateFallbackDoctrineReflection(callsign, cognitiveState, content);
+    const text = generateFallbackDoctrineReflection(
+      callsign,
+      cognitiveState,
+      content,
+    );
     onToken(text, text);
     onSentence(text, 0);
     onComplete(text);
   };
 
   try {
-    if (!CONVEX_SITE_URL || CONVEX_SITE_URL.includes("placeholder-deployment")) {
+    if (
+      !CONVEX_SITE_URL ||
+      CONVEX_SITE_URL.includes("placeholder-deployment")
+    ) {
       fallbackReflection();
       return;
     }
@@ -286,7 +297,10 @@ async function streamMirrorChat(params: {
     }
     onComplete(fullText);
   } catch (e) {
-    console.warn("Stream error, falling back to grounded doctrine reflection:", e);
+    console.warn(
+      "Stream error, falling back to grounded doctrine reflection:",
+      e,
+    );
     fallbackReflection();
   }
 }

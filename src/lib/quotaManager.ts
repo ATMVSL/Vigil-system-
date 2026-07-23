@@ -32,7 +32,7 @@ export class QuotaManager {
   }
 
   static getUsage(): QuotaUsage {
-    const today = this.getTodayKey();
+    const today = QuotaManager.getTodayKey();
     try {
       const data = localStorage.getItem(QUOTA_USAGE_KEY);
       if (data) {
@@ -52,7 +52,7 @@ export class QuotaManager {
       voiceMinutesToday: 0,
       lastResetDate: today,
     };
-    this.saveUsage(newUsage);
+    QuotaManager.saveUsage(newUsage);
     return newUsage;
   }
 
@@ -65,23 +65,23 @@ export class QuotaManager {
   }
 
   static recordReflection(): QuotaUsage {
-    const usage = this.getUsage();
+    const usage = QuotaManager.getUsage();
     usage.reflectionsToday += 1;
-    this.saveUsage(usage);
+    QuotaManager.saveUsage(usage);
     return usage;
   }
 
   static recordTokens(tokens: number): QuotaUsage {
-    const usage = this.getUsage();
+    const usage = QuotaManager.getUsage();
     usage.tokensToday += tokens;
-    this.saveUsage(usage);
+    QuotaManager.saveUsage(usage);
     return usage;
   }
 
   static recordVoiceMinutes(minutes: number): QuotaUsage {
-    const usage = this.getUsage();
+    const usage = QuotaManager.getUsage();
     usage.voiceMinutesToday += Math.round(minutes * 10) / 10;
-    this.saveUsage(usage);
+    QuotaManager.saveUsage(usage);
     return usage;
   }
 
@@ -92,10 +92,21 @@ export class QuotaManager {
     tokenPercent: number;
     voicePercent: number;
   } {
-    const usage = this.getUsage();
-    const reflectionPercent = Math.min(100, Math.round((usage.reflectionsToday / limits.maxReflectionsPerDay) * 100));
-    const tokenPercent = Math.min(100, Math.round((usage.tokensToday / limits.maxTokensPerDay) * 100));
-    const voicePercent = Math.min(100, Math.round((usage.voiceMinutesToday / limits.maxVoiceMinutesPerDay) * 100));
+    const usage = QuotaManager.getUsage();
+    const reflectionPercent = Math.min(
+      100,
+      Math.round((usage.reflectionsToday / limits.maxReflectionsPerDay) * 100),
+    );
+    const tokenPercent = Math.min(
+      100,
+      Math.round((usage.tokensToday / limits.maxTokensPerDay) * 100),
+    );
+    const voicePercent = Math.min(
+      100,
+      Math.round(
+        (usage.voiceMinutesToday / limits.maxVoiceMinutesPerDay) * 100,
+      ),
+    );
 
     if (usage.reflectionsToday >= limits.maxReflectionsPerDay) {
       return {

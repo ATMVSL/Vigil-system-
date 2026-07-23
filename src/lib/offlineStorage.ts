@@ -35,8 +35,10 @@ export class OfflineStorageManager {
     }
   }
 
-  static saveOfflineReflection(reflection: Omit<OfflineReflection, "id" | "synced">): OfflineReflection {
-    const list = this.getOfflineReflections();
+  static saveOfflineReflection(
+    reflection: Omit<OfflineReflection, "id" | "synced">,
+  ): OfflineReflection {
+    const list = OfflineStorageManager.getOfflineReflections();
     const newEntry: OfflineReflection = {
       ...reflection,
       id: `offline_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -47,23 +49,31 @@ export class OfflineStorageManager {
       localStorage.setItem(MIRROR_OFFLINE_KEY, JSON.stringify(list));
     } catch (e) {
       console.warn("LocalStorage full, trimming oldest offline entries:", e);
-      localStorage.setItem(MIRROR_OFFLINE_KEY, JSON.stringify(list.slice(0, 50)));
+      localStorage.setItem(
+        MIRROR_OFFLINE_KEY,
+        JSON.stringify(list.slice(0, 50)),
+      );
     }
     return newEntry;
   }
 
   static markReflectionsSynced(ids: string[]): void {
-    const list = this.getOfflineReflections().filter((r) => !ids.includes(r.id));
+    const list = OfflineStorageManager.getOfflineReflections().filter(
+      r => !ids.includes(r.id),
+    );
     localStorage.setItem(MIRROR_OFFLINE_KEY, JSON.stringify(list));
   }
 
   // ─── TRAINING & LESSON CACHE ───
   static cacheCatalog(catalogData: any): void {
     try {
-      localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
-        data: catalogData,
-        cachedAt: Date.now(),
-      }));
+      localStorage.setItem(
+        CATALOG_CACHE_KEY,
+        JSON.stringify({
+          data: catalogData,
+          cachedAt: Date.now(),
+        }),
+      );
     } catch (e) {
       console.warn("Failed to cache course catalog:", e);
     }
@@ -82,7 +92,7 @@ export class OfflineStorageManager {
 
   static saveOfflineProgress(progress: OfflineLessonProgress): void {
     try {
-      const existing = this.getOfflineProgress();
+      const existing = OfflineStorageManager.getOfflineProgress();
       existing.push(progress);
       localStorage.setItem(LESSON_OFFLINE_KEY, JSON.stringify(existing));
     } catch (e) {

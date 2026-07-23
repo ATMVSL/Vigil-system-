@@ -12,10 +12,16 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { api } from "../../convex/_generated/api";
 
 const moduleIcons: Record<string, React.ReactNode> = {

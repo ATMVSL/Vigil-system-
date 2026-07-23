@@ -13,8 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { DEFAULT_OPERATOR_LIMITS, QuotaManager } from "@/lib/quotaManager";
 import { OfflineStorageManager } from "@/lib/offlineStorage";
+import { DEFAULT_OPERATOR_LIMITS, QuotaManager } from "@/lib/quotaManager";
 import { api } from "../../convex/_generated/api";
 
 export function OfflineSyncIndicator() {
@@ -102,14 +102,22 @@ export function OfflineSyncIndicator() {
             </Badge>
 
             {pendingReflections.length > 0 && (
-              <Badge variant="outline" className="gap-1 text-xs border-amber-500/40 text-amber-500 font-mono">
-                <RefreshCw className={`size-3 ${isSyncing ? "animate-spin" : ""}`} />
+              <Badge
+                variant="outline"
+                className="gap-1 text-xs border-amber-500/40 text-amber-500 font-mono"
+              >
+                <RefreshCw
+                  className={`size-3 ${isSyncing ? "animate-spin" : ""}`}
+                />
                 {pendingReflections.length} Pending Sync
               </Badge>
             )}
 
             {!quotaStatus.canUseAI && (
-              <Badge variant="outline" className="gap-1 text-xs border-destructive/40 text-destructive font-mono">
+              <Badge
+                variant="outline"
+                className="gap-1 text-xs border-destructive/40 text-destructive font-mono"
+              >
                 <ShieldAlert className="size-3" /> CAP REACHED
               </Badge>
             )}
@@ -124,7 +132,9 @@ export function OfflineSyncIndicator() {
               disabled={isSyncing}
               className="gap-2 text-xs"
             >
-              <RefreshCw className={`size-3 ${isSyncing ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`size-3 ${isSyncing ? "animate-spin" : ""}`}
+              />
               {isSyncing ? "Syncing..." : "Sync Offline Data"}
             </Button>
           )}
@@ -138,7 +148,8 @@ export function OfflineSyncIndicator() {
                 <Gauge className="size-3 text-primary" /> Daily Reflections
               </span>
               <span>
-                {quotaUsage.reflectionsToday} / {DEFAULT_OPERATOR_LIMITS.maxReflectionsPerDay}
+                {quotaUsage.reflectionsToday} /{" "}
+                {DEFAULT_OPERATOR_LIMITS.maxReflectionsPerDay}
               </span>
             </div>
             <Progress value={quotaStatus.reflectionPercent} className="h-1" />
@@ -150,7 +161,8 @@ export function OfflineSyncIndicator() {
                 <Activity className="size-3 text-chart-2" /> AI Token Cap
               </span>
               <span>
-                {Math.round(quotaUsage.tokensToday / 1000)}k / {Math.round(DEFAULT_OPERATOR_LIMITS.maxTokensPerDay / 1000)}k
+                {Math.round(quotaUsage.tokensToday / 1000)}k /{" "}
+                {Math.round(DEFAULT_OPERATOR_LIMITS.maxTokensPerDay / 1000)}k
               </span>
             </div>
             <Progress value={quotaStatus.tokenPercent} className="h-1" />
@@ -159,10 +171,12 @@ export function OfflineSyncIndicator() {
           <div>
             <div className="flex justify-between text-muted-foreground mb-1">
               <span className="flex items-center gap-1 font-mono">
-                <CheckCircle2 className="size-3 text-chart-4" /> Voice Session Limit
+                <CheckCircle2 className="size-3 text-chart-4" /> Voice Session
+                Limit
               </span>
               <span>
-                {quotaUsage.voiceMinutesToday}m / {DEFAULT_OPERATOR_LIMITS.maxVoiceMinutesPerDay}m
+                {quotaUsage.voiceMinutesToday}m /{" "}
+                {DEFAULT_OPERATOR_LIMITS.maxVoiceMinutesPerDay}m
               </span>
             </div>
             <Progress value={quotaStatus.voicePercent} className="h-1" />

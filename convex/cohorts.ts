@@ -22,10 +22,15 @@ export const createCohort = mutation({
 
     const profile = await ctx.db
       .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .unique();
 
-    if (!profile || (profile.role !== "admin" && profile.role !== "superadmin" && profile.role !== "founder")) {
+    if (
+      !profile ||
+      (profile.role !== "admin" &&
+        profile.role !== "superadmin" &&
+        profile.role !== "founder")
+    ) {
       throw new Error("Only instructors/admins can create cohorts");
     }
 
@@ -57,7 +62,9 @@ export const addMember = mutation({
   args: {
     cohortId: v.id("cohorts"),
     userId: v.id("users"),
-    role: v.optional(v.union(v.literal("student"), v.literal("lead"), v.literal("auditor"))),
+    role: v.optional(
+      v.union(v.literal("student"), v.literal("lead"), v.literal("auditor")),
+    ),
   },
   handler: async (ctx, args) => {
     const callerId = await getAuthUserId(ctx);
@@ -65,8 +72,8 @@ export const addMember = mutation({
 
     const existing = await ctx.db
       .query("cohortMemberships")
-      .withIndex("by_cohort", (q) => q.eq("cohortId", args.cohortId))
-      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .withIndex("by_cohort", q => q.eq("cohortId", args.cohortId))
+      .filter(q => q.eq(q.field("userId"), args.userId))
       .first();
 
     if (existing) return existing._id;
@@ -82,17 +89,17 @@ export const addMember = mutation({
 
 // ─── LIST COHORTS ───
 export const listCohorts = query({
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
     const allCohorts = await ctx.db.query("cohorts").collect();
 
     const cohortsWithCounts = await Promise.all(
-      allCohorts.map(async (cohort) => {
+      allCohorts.map(async cohort => {
         const members = await ctx.db
           .query("cohortMemberships")
-          .withIndex("by_cohort", (q) => q.eq("cohortId", cohort._id))
+          .withIndex("by_cohort", q => q.eq("cohortId", cohort._id))
           .collect();
 
         return {
@@ -118,25 +125,25 @@ export const getCohortReport = query({
 
     const members = await ctx.db
       .query("cohortMemberships")
-      .withIndex("by_cohort", (q) => q.eq("cohortId", args.cohortId))
+      .withIndex("by_cohort", q => q.eq("cohortId", args.cohortId))
       .collect();
 
     const memberDetails = await Promise.all(
-      members.map(async (m) => {
+      members.map(async m => {
         const u = await ctx.db.get(m.userId);
         const profile = await ctx.db
           .query("userProfiles")
-          .withIndex("by_user", (q) => q.eq("userId", m.userId))
+          .withIndex("by_user", q => q.eq("userId", m.userId))
           .unique();
 
         const enrollments = await ctx.db
           .query("enrollments")
-          .withIndex("by_user", (q) => q.eq("userId", m.userId))
+          .withIndex("by_user", q => q.eq("userId", m.userId))
           .collect();
 
         const certs = await ctx.db
           .query("certifications")
-          .withIndex("by_user", (q) => q.eq("userId", m.userId))
+          .withIndex("by_user", q => q.eq("userId", m.userId))
           .collect();
 
         const avgProgress = enrollments.length

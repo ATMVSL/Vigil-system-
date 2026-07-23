@@ -1,24 +1,29 @@
 import { useMutation, useQuery } from "convex/react";
-import {
-  FileSpreadsheet,
-  Plus,
-  Users,
-} from "lucide-react";
+import { FileSpreadsheet, Plus, Users } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 
 export function CohortPage() {
-  const [selectedCohortId, setSelectedCohortId] = useState<Id<"cohorts"> | null>(null);
+  const [selectedCohortId, setSelectedCohortId] =
+    useState<Id<"cohorts"> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Form states
   const [newCohortName, setNewCohortName] = useState("");
-  const [newCohortType, setNewCohortType] = useState<"veterans" | "reentry" | "operators" | "agency_partners">("veterans");
+  const [newCohortType, setNewCohortType] = useState<
+    "veterans" | "reentry" | "operators" | "agency_partners"
+  >("veterans");
   const [newDescription, setNewDescription] = useState("");
 
   const cohorts = useQuery(api.cohorts.listCohorts);
@@ -45,7 +50,8 @@ export function CohortPage() {
 
   const exportCSV = () => {
     if (!cohortReport) return;
-    const headers = "Name,Email,Role,UserRole,CompletedCourses,AvgProgress,Certifications\n";
+    const headers =
+      "Name,Email,Role,UserRole,CompletedCourses,AvgProgress,Certifications\n";
     const rows = cohortReport.members
       .map(
         (m: any) =>
@@ -74,11 +80,15 @@ export function CohortPage() {
             Cohort Tracking & Agency Reporting
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage operator groups for Veterans, Reentry, Operators, and Agency Partners.
+            Manage operator groups for Veterans, Reentry, Operators, and Agency
+            Partners.
           </p>
         </div>
 
-        <Button onClick={() => setShowCreateModal(true)} className="gap-2 bg-primary text-primary-foreground">
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="gap-2 bg-primary text-primary-foreground"
+        >
           <Plus className="size-4" /> Create Cohort
         </Button>
       </div>
@@ -97,14 +107,19 @@ export function CohortPage() {
           >
             <CardHeader className="p-4 pb-2">
               <div className="flex items-center justify-between">
-                <Badge variant="outline" className="text-[10px] uppercase font-mono border-primary/30 text-primary">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] uppercase font-mono border-primary/30 text-primary"
+                >
                   {c.type}
                 </Badge>
                 <Badge variant="secondary" className="text-[10px]">
                   {c.status}
                 </Badge>
               </div>
-              <CardTitle className="text-sm font-semibold mt-2">{c.name}</CardTitle>
+              <CardTitle className="text-sm font-semibold mt-2">
+                {c.name}
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
@@ -121,13 +136,24 @@ export function CohortPage() {
         <div className="space-y-6 pt-4 border-t border-border/40">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-foreground">{cohortReport.cohort.name} — Agency Summary</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                {cohortReport.cohort.name} — Agency Summary
+              </h2>
               <p className="text-xs text-muted-foreground">
-                Type: <span className="uppercase font-mono">{cohortReport.cohort.type}</span> | Status: {cohortReport.cohort.status}
+                Type:{" "}
+                <span className="uppercase font-mono">
+                  {cohortReport.cohort.type}
+                </span>{" "}
+                | Status: {cohortReport.cohort.status}
               </p>
             </div>
 
-            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportCSV}
+              className="gap-2"
+            >
               <FileSpreadsheet className="size-4 text-emerald-500" />
               Export Agency Report (CSV)
             </Button>
@@ -137,25 +163,40 @@ export function CohortPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="border-border/60">
               <CardHeader className="p-4 pb-2">
-                <CardDescription className="text-xs">Total Cohort Members</CardDescription>
-                <CardTitle className="text-2xl font-bold text-foreground">{cohortReport.totalMembers}</CardTitle>
+                <CardDescription className="text-xs">
+                  Total Cohort Members
+                </CardDescription>
+                <CardTitle className="text-2xl font-bold text-foreground">
+                  {cohortReport.totalMembers}
+                </CardTitle>
               </CardHeader>
             </Card>
 
             <Card className="border-border/60">
               <CardHeader className="p-4 pb-2">
-                <CardDescription className="text-xs">Average Course Progress</CardDescription>
-                <CardTitle className="text-2xl font-bold text-primary">{cohortReport.overallAvgProgress}%</CardTitle>
+                <CardDescription className="text-xs">
+                  Average Course Progress
+                </CardDescription>
+                <CardTitle className="text-2xl font-bold text-primary">
+                  {cohortReport.overallAvgProgress}%
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0">
-                <Progress value={cohortReport.overallAvgProgress} className="h-1.5 mt-2" />
+                <Progress
+                  value={cohortReport.overallAvgProgress}
+                  className="h-1.5 mt-2"
+                />
               </CardContent>
             </Card>
 
             <Card className="border-border/60">
               <CardHeader className="p-4 pb-2">
-                <CardDescription className="text-xs">Certifications Issued</CardDescription>
-                <CardTitle className="text-2xl font-bold text-emerald-400">{cohortReport.totalCertificationsIssued}</CardTitle>
+                <CardDescription className="text-xs">
+                  Certifications Issued
+                </CardDescription>
+                <CardTitle className="text-2xl font-bold text-emerald-400">
+                  {cohortReport.totalCertificationsIssued}
+                </CardTitle>
               </CardHeader>
             </Card>
           </div>
@@ -163,7 +204,9 @@ export function CohortPage() {
           {/* Members Table */}
           <Card className="border-border/60">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Operator Roster & Pathway Progress</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Operator Roster & Pathway Progress
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -180,16 +223,26 @@ export function CohortPage() {
                   <tbody className="divide-y divide-border/30">
                     {cohortReport.members.map((m: any) => (
                       <tr key={m.userId} className="hover:bg-muted/20">
-                        <td className="py-3 px-3 font-medium text-foreground">{m.name}</td>
+                        <td className="py-3 px-3 font-medium text-foreground">
+                          {m.name}
+                        </td>
                         <td className="py-3 px-3">
-                          <Badge variant="outline" className="capitalize text-[10px]">
+                          <Badge
+                            variant="outline"
+                            className="capitalize text-[10px]"
+                          >
                             {m.userRole}
                           </Badge>
                         </td>
-                        <td className="py-3 px-3">{m.completedCourses} Courses</td>
+                        <td className="py-3 px-3">
+                          {m.completedCourses} Courses
+                        </td>
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2">
-                            <Progress value={m.avgProgress} className="w-16 h-1.5" />
+                            <Progress
+                              value={m.avgProgress}
+                              className="w-16 h-1.5"
+                            />
                             <span>{m.avgProgress}%</span>
                           </div>
                         </td>
@@ -214,22 +267,28 @@ export function CohortPage() {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-card border border-border/70 rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-foreground">Create New Cohort</h3>
+            <h3 className="text-lg font-bold text-foreground">
+              Create New Cohort
+            </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Cohort Name</label>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Cohort Name
+                </label>
                 <input
                   type="text"
                   value={newCohortName}
-                  onChange={(e) => setNewCohortName(e.target.value)}
+                  onChange={e => setNewCohortName(e.target.value)}
                   placeholder="e.g. Veterans Cohort Alpha-2026"
                   className="w-full p-2.5 rounded-lg border border-border/60 bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Cohort Type</label>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Cohort Type
+                </label>
                 <select
                   value={newCohortType}
                   onChange={(e: any) => setNewCohortType(e.target.value)}
@@ -243,11 +302,13 @@ export function CohortPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Description</label>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Description
+                </label>
                 <textarea
                   rows={2}
                   value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
+                  onChange={e => setNewDescription(e.target.value)}
                   placeholder="Cohort goals and partner details..."
                   className="w-full p-2.5 rounded-lg border border-border/60 bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
@@ -255,10 +316,16 @@ export function CohortPage() {
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateModal(false)}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleCreate} className="bg-primary text-primary-foreground">
+              <Button
+                onClick={handleCreate}
+                className="bg-primary text-primary-foreground"
+              >
                 Create Cohort
               </Button>
             </div>

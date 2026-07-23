@@ -21,6 +21,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { RiseCoursePlayer } from "@/components/RiseCoursePlayer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +34,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { RiseCoursePlayer } from "@/components/RiseCoursePlayer";
 
 const categoryIcons: Record<string, React.ReactNode> = {
   self_doctrine: <Users className="size-5" />,
@@ -473,7 +473,7 @@ export function AcademyPage() {
 
   // ─── LESSON READER VIEW (RISE 360 INTERACTIVE PLAYER) ───
   if (selectedLesson && selectedCourseData) {
-    const enrollment = enrollments?.find((e) => e.courseId === selectedCourse);
+    const enrollment = enrollments?.find(e => e.courseId === selectedCourse);
 
     return (
       <RiseCoursePlayer
@@ -493,7 +493,11 @@ export function AcademyPage() {
             });
             if (nextProgress >= 100) await checkPromotion();
           }
-          if (lessons && selectedLessonIdx !== null && selectedLessonIdx < lessons.length - 1) {
+          if (
+            lessons &&
+            selectedLessonIdx !== null &&
+            selectedLessonIdx < lessons.length - 1
+          ) {
             setSelectedLessonIdx(selectedLessonIdx + 1);
           } else {
             setSelectedLessonIdx(null);

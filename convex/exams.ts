@@ -18,7 +18,7 @@ export const submitExamAttempt = mutation({
     // Fetch questions from question bank
     const questions = await ctx.db
       .query("examQuestions")
-      .withIndex("by_exam", (q) => q.eq("examId", args.examId))
+      .withIndex("by_exam", q => q.eq("examId", args.examId))
       .collect();
 
     let studentAnswers: Record<string, string> = {};
@@ -34,7 +34,11 @@ export const submitExamAttempt = mutation({
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       const answerKey = studentAnswers[q._id] || studentAnswers[String(i)];
-      if (answerKey && answerKey.trim().toLowerCase() === q.correctOptionKey.trim().toLowerCase()) {
+      if (
+        answerKey &&
+        answerKey.trim().toLowerCase() ===
+          q.correctOptionKey.trim().toLowerCase()
+      ) {
         correctCount++;
       }
     }
@@ -60,8 +64,8 @@ export const submitExamAttempt = mutation({
       // Check if already certified
       const existingCert = await ctx.db
         .query("certifications")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .filter((q) => q.eq(q.field("type"), certType))
+        .withIndex("by_user", q => q.eq("userId", userId))
+        .filter(q => q.eq(q.field("type"), certType))
         .first();
 
       if (!existingCert) {
@@ -77,7 +81,7 @@ export const submitExamAttempt = mutation({
         // Upgrade user profile
         const profile = await ctx.db
           .query("userProfiles")
-          .withIndex("by_user", (q) => q.eq("userId", userId))
+          .withIndex("by_user", q => q.eq("userId", userId))
           .unique();
 
         if (profile) {
@@ -110,12 +114,12 @@ export const getExamDetails = query({
 
     const questions = await ctx.db
       .query("examQuestions")
-      .withIndex("by_exam", (q) => q.eq("examId", args.examId))
+      .withIndex("by_exam", q => q.eq("examId", args.examId))
       .collect();
 
     return {
       ...exam,
-      questionBank: questions.map((q) => {
+      questionBank: questions.map(q => {
         let options: string[] = [];
         try {
           options = JSON.parse(q.optionsJson);

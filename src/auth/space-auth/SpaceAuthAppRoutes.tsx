@@ -8,6 +8,7 @@ import {
   AcademyPage,
   AdminPage,
   CertificationPage,
+  CohortPage,
   CommunityPage,
   DashboardPage,
   DoctrinePage,
@@ -17,13 +18,12 @@ import {
   InfraLabPage,
   LandingPage,
   LoginPage,
+  MirrorLabPage,
   MirrorPage,
   SettingsPage,
   SignupPage,
   SqlLabPage,
   TrainingPage,
-  CohortPage,
-  MirrorLabPage,
 } from "@/pages";
 
 export function ProductAuthRoutes() {

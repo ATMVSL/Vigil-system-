@@ -1363,14 +1363,15 @@ ALL RIGHTS RESERVED.`,
 
 export const seedMasterBlueprintData = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
     // Add activity log
     await ctx.db.insert("activityLog", {
       userId,
-      action: "Seeded VIGIL Academy Master Blueprint line-by-line course content and exam question banks",
+      action:
+        "Seeded VIGIL Academy Master Blueprint line-by-line course content and exam question banks",
       module: "academy",
       createdAt: Date.now(),
     });

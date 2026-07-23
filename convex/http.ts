@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server";
 import { createViktorAuthRoutes } from "../src/lib/viktor-spaces-access/server";
 import { httpAction } from "./_generated/server";
+import { api } from "./_generated/api";
 import { auth } from "./auth";
 import { buildMirrorSystemPrompt } from "./mirrorPrompts";
 import { executeTool, MIRROR_TOOLS } from "./mirrorTools";
@@ -431,6 +432,52 @@ http.route({
   handler: httpAction(async (_ctx, request) =>
     viktorAuthRoutes().logout(request),
   ),
+});
+
+// ─── FULL LMS API ROUTES (REST OUTLINE) ───
+
+// GET /api/lms/courses
+http.route({
+  path: "/api/lms/courses",
+  method: "GET",
+  handler: httpAction(async (ctx) => {
+    const courses = await ctx.runQuery(api.academy.getCourses);
+    return new Response(JSON.stringify({ courses }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }),
+});
+
+// GET /api/lms/certifications/:id
+http.route({
+  path: "/api/lms/certifications/verify",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const url = new URL(request.url);
+    const certNum = url.searchParams.get("number");
+    if (!certNum) {
+      return new Response(JSON.stringify({ error: "Missing certificate number" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const cert = await ctx.runQuery(api.certification.verifyCertificate, { certificateNumber: certNum });
+    return new Response(JSON.stringify({ verified: !!cert, certification: cert }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }),
+});
+
+// GET /api/lms/cohorts
+http.route({
+  path: "/api/lms/cohorts",
+  method: "GET",
+  handler: httpAction(async (ctx) => {
+    const cohorts = await ctx.runQuery(api.cohorts.listCohorts);
+    return new Response(JSON.stringify({ cohorts }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }),
 });
 
 export default http;

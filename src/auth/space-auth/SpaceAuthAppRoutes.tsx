@@ -22,6 +22,8 @@ import {
   SignupPage,
   SqlLabPage,
   TrainingPage,
+  CohortPage,
+  MirrorLabPage,
 } from "@/pages";
 
 export function ProductAuthRoutes() {
@@ -45,6 +47,8 @@ export function ProductAuthRoutes() {
           <Route path="/training" element={<TrainingPage />} />
           <Route path="/sql-lab" element={<SqlLabPage />} />
           <Route path="/infra-lab" element={<InfraLabPage />} />
+          <Route path="/mirror-lab" element={<MirrorLabPage />} />
+          <Route path="/cohorts" element={<CohortPage />} />
           <Route path="/certification" element={<CertificationPage />} />
           <Route path="/evidence" element={<EvidencePage />} />
           <Route path="/admin" element={<AdminPage />} />

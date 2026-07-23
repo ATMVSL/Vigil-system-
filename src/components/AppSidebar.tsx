@@ -56,6 +56,8 @@ const academyNavItems = [
   { href: "/training", label: "Training", icon: Activity },
   { href: "/sql-lab", label: "SQL Lab", icon: Code2 },
   { href: "/infra-lab", label: "Infrastructure Lab", icon: Server },
+  { href: "/mirror-lab", label: "Mirror Lab", icon: Eye },
+  { href: "/cohorts", label: "Cohorts", icon: Users },
   { href: "/certification", label: "Certification", icon: Award },
 ];
 

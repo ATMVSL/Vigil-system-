@@ -33,6 +33,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import { RiseCoursePlayer } from "@/components/RiseCoursePlayer";
 
 const categoryIcons: Record<string, React.ReactNode> = {
   self_doctrine: <Users className="size-5" />,
@@ -470,111 +471,35 @@ export function AcademyPage() {
   const selectedLesson =
     selectedLessonIdx !== null && lessons ? lessons[selectedLessonIdx] : null;
 
-  // ─── LESSON READER VIEW ───
+  // ─── LESSON READER VIEW (RISE 360 INTERACTIVE PLAYER) ───
   if (selectedLesson && selectedCourseData) {
-    const isAssessment = selectedLesson.type === "assessment";
+    const enrollment = enrollments?.find((e) => e.courseId === selectedCourse);
 
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1 text-xs"
-            onClick={() => setSelectedLessonIdx(null)}
-          >
-            <ArrowLeft className="size-3" /> Back to Lessons
-          </Button>
-          <span className="text-xs text-muted-foreground">
-            {selectedCourseData.title} — Lesson {selectedLesson.order} of{" "}
-            {lessons?.length}
-          </span>
-        </div>
-        <Card className="vigil-border">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <Badge
-                variant="outline"
-                className={`text-[9px] uppercase ${isAssessment ? "bg-chart-4/10 text-chart-4 border-chart-4/20" : ""}`}
-              >
-                {selectedLesson.type}
-              </Badge>
-              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Clock className="size-3" /> {selectedLesson.durationMinutes}{" "}
-                min
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">{selectedLesson.title}</CardTitle>
-              <LessonVoiceButton text={selectedLesson.content.slice(0, 4000)} />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isAssessment ? (
-              <AssessmentQuiz content={selectedLesson.content} />
-            ) : (
-              <div className="prose prose-sm prose-invert max-w-none">
-                {selectedLesson.content.split("\n").map((line, i) => {
-                  if (
-                    line.startsWith("SECTION") ||
-                    line.startsWith("PART") ||
-                    line.startsWith("SCENARIO") ||
-                    /^[A-Z][A-Z ]+:$/.test(line.trim()) ||
-                    /^[A-Z][A-Z ]+—/.test(line.trim())
-                  ) {
-                    return (
-                      <h4
-                        key={i}
-                        className="text-sm font-bold text-primary mt-4 mb-2"
-                      >
-                        {line}
-                      </h4>
-                    );
-                  }
-                  if (
-                    line.startsWith("•") ||
-                    line.startsWith("✗") ||
-                    line.startsWith("✓") ||
-                    line.startsWith("→")
-                  ) {
-                    return (
-                      <p key={i} className="text-sm mb-1 pl-4">
-                        {line}
-                      </p>
-                    );
-                  }
-                  if (line.trim() === "")
-                    return <div key={i} className="h-2" />;
-                  return (
-                    <p key={i} className="text-sm mb-2 text-foreground/90">
-                      {line}
-                    </p>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        {/* Nav buttons */}
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={selectedLessonIdx === 0}
-            onClick={() => setSelectedLessonIdx((selectedLessonIdx ?? 0) - 1)}
-          >
-            ← Previous Lesson
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!lessons || selectedLessonIdx === lessons.length - 1}
-            onClick={() => setSelectedLessonIdx((selectedLessonIdx ?? 0) + 1)}
-          >
-            Next Lesson →
-          </Button>
-        </div>
-      </div>
+      <RiseCoursePlayer
+        lessonTitle={selectedLesson.title}
+        moduleIndex={selectedLesson.moduleIndex || selectedLesson.order || 1}
+        courseTitle={selectedCourseData.title}
+        rawContent={selectedLesson.content}
+        contentJson={(selectedLesson as any).contentJson}
+        onBack={() => setSelectedLessonIdx(null)}
+        isCompleted={enrollment?.progress === 100}
+        onCompleteLesson={async () => {
+          if (enrollment) {
+            const nextProgress = Math.min(100, enrollment.progress + 20);
+            await updateProgress({
+              enrollmentId: enrollment._id,
+              progress: nextProgress,
+            });
+            if (nextProgress >= 100) await checkPromotion();
+          }
+          if (lessons && selectedLessonIdx !== null && selectedLessonIdx < lessons.length - 1) {
+            setSelectedLessonIdx(selectedLessonIdx + 1);
+          } else {
+            setSelectedLessonIdx(null);
+          }
+        }}
+      />
     );
   }
 

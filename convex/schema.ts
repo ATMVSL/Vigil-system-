@@ -146,6 +146,7 @@ const schema = defineSchema({
     .index("by_severity", ["severity"]),
 
   // ─── COURSES ─── Academy course catalog
+  // ─── COURSES ─── Academy course catalog
   courses: defineTable({
     title: v.string(),
     description: v.string(),
@@ -158,6 +159,19 @@ const schema = defineSchema({
       v.literal("certification"),
       v.literal("peer_support"),
       v.literal("continuing_education"),
+      v.literal("git_vc"),
+      v.literal("node_backend"),
+      v.literal("devops"),
+      v.literal("python"),
+      v.literal("fullstack"),
+    ),
+    division: v.optional(
+      v.union(
+        v.literal("doctrine"),
+        v.literal("technical"),
+        v.literal("professional"),
+        v.literal("lab"),
+      ),
     ),
     difficulty: v.union(
       v.literal("beginner"),
@@ -176,6 +190,8 @@ const schema = defineSchema({
     courseId: v.id("courses"),
     title: v.string(),
     content: v.string(),
+    contentJson: v.optional(v.string()), // Flexible Rise 360 blocks (intro, process, tabs, flashcards, scenarios, code)
+    moduleIndex: v.optional(v.number()), // Module 1-5 structure
     type: v.union(
       v.literal("lecture"),
       v.literal("lab"),
@@ -207,6 +223,40 @@ const schema = defineSchema({
     .index("by_user", ["userId"])
     .index("by_course", ["courseId"]),
 
+  // ─── COHORTS ─── Group tracking for Veterans, Reentry, Operators & Partners
+  cohorts: defineTable({
+    name: v.string(),
+    type: v.union(
+      v.literal("veterans"),
+      v.literal("reentry"),
+      v.literal("operators"),
+      v.literal("agency_partners"),
+    ),
+    instructorId: v.optional(v.id("users")),
+    description: v.optional(v.string()),
+    startDate: v.number(),
+    endDate: v.number(),
+    status: v.union(
+      v.literal("active"),
+      v.literal("completed"),
+      v.literal("archived"),
+    ),
+    createdAt: v.number(),
+  }).index("by_type", ["type"]),
+
+  cohortMemberships: defineTable({
+    cohortId: v.id("cohorts"),
+    userId: v.id("users"),
+    role: v.union(
+      v.literal("student"),
+      v.literal("lead"),
+      v.literal("auditor"),
+    ),
+    joinedAt: v.number(),
+  })
+    .index("by_cohort", ["cohortId"])
+    .index("by_user", ["userId"]),
+
   // ─── TRAINING MIRRORS ─── Isolated training mirrors (NOT production)
   trainingMirrors: defineTable({
     userId: v.id("users"),
@@ -226,6 +276,24 @@ const schema = defineSchema({
     syntheticUserCount: v.number(),
     totalInteractions: v.number(),
     score: v.number(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  // ─── MIRROR LAB LOGS ─── Scored drift & recovery simulation runs
+  mirrorLabLogs: defineTable({
+    userId: v.id("users"),
+    scenarioTitle: v.string(),
+    cognitiveState: v.union(
+      v.literal("stable"),
+      v.literal("strain"),
+      v.literal("drift"),
+      v.literal("critical"),
+    ),
+    driftDetected: v.boolean(),
+    anchorRecallTriggered: v.boolean(),
+    score: v.number(),
+    passed: v.boolean(),
+    detailsJson: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_user", ["userId"]),
 
@@ -344,6 +412,7 @@ const schema = defineSchema({
   // ─── EXAMS ─── Course assessments
   exams: defineTable({
     courseId: v.optional(v.id("courses")),
+    certificationType: v.optional(v.string()),
     title: v.string(),
     description: v.string(),
     questions: v.string(), // JSON: array of questions with options
@@ -354,6 +423,17 @@ const schema = defineSchema({
     createdBy: v.optional(v.id("users")),
     createdAt: v.number(),
   }).index("by_course", ["courseId"]),
+
+  // ─── EXAM QUESTIONS BANK ─── Detailed question bank with sectioning
+  examQuestions: defineTable({
+    examId: v.id("exams"),
+    section: v.optional(v.string()), // e.g., "Section 1: Doctrine", "Section 2: Mirror Operations"
+    questionText: v.string(),
+    optionsJson: v.string(), // JSON array of options
+    correctOptionKey: v.string(),
+    explanation: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_exam", ["examId"]),
 
   // ─── EXAM ATTEMPTS ─── Student exam submissions
   examAttempts: defineTable({
@@ -368,10 +448,19 @@ const schema = defineSchema({
     .index("by_user", ["userId"])
     .index("by_exam", ["examId"]),
 
-  // ─── CERTIFICATIONS ─── Digital certificates
+  // ─── CERTIFICATIONS ─── Digital certificates across 9 tracks
   certifications: defineTable({
     userId: v.id("users"),
     type: v.union(
+      v.literal("backend_developer"),
+      v.literal("fullstack_developer"),
+      v.literal("devsecops_practitioner"),
+      v.literal("infrastructure_engineer"),
+      v.literal("sql_analyst"),
+      v.literal("python_technician"),
+      v.literal("ai_operations_specialist"),
+      v.literal("peer_support_specialist"),
+      v.literal("continuity_operator"),
       v.literal("sql"),
       v.literal("infrastructure"),
       v.literal("mirror_operator"),

@@ -53,6 +53,7 @@ const coreNavItems = [
 
 const academyNavItems = [
   { href: "/academy", label: "Academy", icon: GraduationCap },
+  { href: "/sandbox", label: "Sandbox", icon: Code2 },
   { href: "/training", label: "Training", icon: Activity },
   { href: "/sql-lab", label: "SQL Lab", icon: Code2 },
   { href: "/infra-lab", label: "Infrastructure Lab", icon: Server },

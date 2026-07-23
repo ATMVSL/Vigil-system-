@@ -17,3 +17,4 @@ export { SettingsPage } from "./SettingsPage";
 export { SignupPage } from "./SignupPage";
 export { SqlLabPage } from "./SqlLabPage";
 export { TrainingPage } from "./TrainingPage";
+export { SandboxPage } from "./SandboxPage";

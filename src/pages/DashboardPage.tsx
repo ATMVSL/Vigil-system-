@@ -14,13 +14,8 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { api } from "../../convex/_generated/api";
 
 const moduleIcons: Record<string, React.ReactNode> = {
@@ -123,6 +118,9 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Offline Status & Quota Indicator */}
+      <OfflineSyncIndicator />
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

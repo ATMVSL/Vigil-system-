@@ -28,12 +28,12 @@ export const getLearningPipelineStatus = query({
 
     const pipeline = await ctx.db
       .query("learningPipeline")
-      .withIndex("by_mirror", (q) => q.eq("mirrorId", args.mirrorId))
+      .withIndex("by_mirror", q => q.eq("mirrorId", args.mirrorId))
       .first();
 
     const reflections = await ctx.db
       .query("reflections")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
 
     const baselineEstablished = reflections.length >= 3;
@@ -60,7 +60,7 @@ export const captureInteraction = mutation({
 
     const reflections = await ctx.db
       .query("reflections")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
 
     const baselineEstablished = reflections.length >= 3;
@@ -68,7 +68,7 @@ export const captureInteraction = mutation({
 
     const existingPipeline = await ctx.db
       .query("learningPipeline")
-      .withIndex("by_mirror", (q) => q.eq("mirrorId", args.mirrorId))
+      .withIndex("by_mirror", q => q.eq("mirrorId", args.mirrorId))
       .first();
 
     let pipelineId = existingPipeline?._id;
@@ -112,7 +112,9 @@ export const scramblePattern = mutation({
     if (pipeline.userId !== userId) throw new Error("Sovereignty violation");
 
     // Anonymize & scramble data into non-identifying metrics
-    const patternHash = hashString(`${pipeline.userId}_${args.cognitiveState}_${Date.now()}`);
+    const patternHash = hashString(
+      `${pipeline.userId}_${args.cognitiveState}_${Date.now()}`,
+    );
     const scrambledMetrics = JSON.stringify({
       cognitiveState: args.cognitiveState,
       varianceIndex: Math.random().toFixed(3),
@@ -178,10 +180,14 @@ export const applyPattern = mutation({
 
     const pipeline = await ctx.db.get(args.pipelineId);
     if (!pipeline) throw new Error("Pipeline not found");
-    if (pipeline.userId !== userId) throw new Error("Per-user sovereignty enforced: Cross-user bleed rejected.");
+    if (pipeline.userId !== userId)
+      throw new Error(
+        "Per-user sovereignty enforced: Cross-user bleed rejected.",
+      );
 
     const intel = await ctx.db.get(args.intelId);
-    if (!intel || !intel.isVerified) throw new Error("Unverified intel cannot be applied.");
+    if (!intel || !intel.isVerified)
+      throw new Error("Unverified intel cannot be applied.");
 
     // Patch pipeline to applied status
     await ctx.db.patch(args.pipelineId, {
@@ -193,7 +199,8 @@ export const applyPattern = mutation({
     // Record activity log
     await ctx.db.insert("activityLog", {
       userId,
-      action: "Applied identity-scrambled Learning Engine improvement to personal Mirror",
+      action:
+        "Applied identity-scrambled Learning Engine improvement to personal Mirror",
       module: "learning_engine",
       createdAt: Date.now(),
     });
@@ -211,7 +218,7 @@ export const detectDrift = query({
 
     const reflections = await ctx.db
       .query("reflections")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .collect();
 
     if (reflections.length < 3) {
@@ -223,8 +230,8 @@ export const detectDrift = query({
     }
 
     // Measure variance across recent reflections vs baseline
-    const recentStates = reflections.slice(0, 5).map((r) => r.cognitiveState);
-    const nonStableCount = recentStates.filter((s) => s !== "stable").length;
+    const recentStates = reflections.slice(0, 5).map(r => r.cognitiveState);
+    const nonStableCount = recentStates.filter(s => s !== "stable").length;
     const driftIndex = Math.round((nonStableCount / recentStates.length) * 100);
 
     let status = "stable";

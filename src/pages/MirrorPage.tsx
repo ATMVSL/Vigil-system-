@@ -40,8 +40,8 @@ import { api } from "../../convex/_generated/api";
 // Voice Activity Detection → Streaming GPT → Sentence-Level TTS
 // Natural conversation flow. No buttons needed. Just speak.
 
-// Derive the Convex HTTP endpoint URL from the cloud URL
-const CONVEX_SITE_URL = (import.meta.env.VITE_CONVEX_URL as string).replace(
+// Derive the Convex HTTP endpoint URL from the cloud URL with safe fallback for previews
+const CONVEX_SITE_URL = (import.meta.env.VITE_CONVEX_URL || "").replace(
   ".convex.cloud",
   ".convex.site",
 );

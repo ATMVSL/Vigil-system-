@@ -20,11 +20,11 @@ import {
   LoginPage,
   MirrorLabPage,
   MirrorPage,
+  SandboxPage,
   SettingsPage,
   SignupPage,
   SqlLabPage,
   TrainingPage,
-  SandboxPage,
 } from "@/pages";
 
 export function ProductAuthRoutes() {

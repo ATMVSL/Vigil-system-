@@ -28,7 +28,8 @@ const STARTER_TEMPLATES: Record<
   react: {
     name: "React & Modern Frontend Sandbox",
     language: "typescript",
-    description: "Build, test, and render dynamic React components with live preview.",
+    description:
+      "Build, test, and render dynamic React components with live preview.",
     code: `import React, { useState } from 'react';
 
 export default function OperatorWidget() {
@@ -51,7 +52,8 @@ export default function OperatorWidget() {
   node: {
     name: "Node.js & Express API Sandbox",
     language: "javascript",
-    description: "Design and test REST API endpoints, JWT auth middleware, and JSON routes.",
+    description:
+      "Design and test REST API endpoints, JWT auth middleware, and JSON routes.",
     code: `import express from 'express';
 
 const app = express();
@@ -72,7 +74,8 @@ console.log('Express API Mock Server initialized on port 3000');`,
   sql: {
     name: "SQL Analytics Sandbox",
     language: "sql",
-    description: "Run complex SQL queries, JOINs, and aggregates against sample VIGIL schemas.",
+    description:
+      "Run complex SQL queries, JOINs, and aggregates against sample VIGIL schemas.",
     code: `-- VIGIL Academy SQL Challenge Sandbox
 SELECT 
   u.name AS operator_name,
@@ -88,7 +91,8 @@ ORDER BY e.progress DESC;`,
   python: {
     name: "Python Automation Sandbox",
     language: "python",
-    description: "Write Python scripts for data processing, analysis, and automation.",
+    description:
+      "Write Python scripts for data processing, analysis, and automation.",
     code: `# VIGIL Data & AI Script Sandbox
 def calculate_operator_score(completed_courses, cert_count, mirror_compliance):
     base_score = (completed_courses * 15) + (cert_count * 25)
@@ -101,7 +105,8 @@ print(f"Calculated Operator Readiness Index: {score}")`,
   doctrine: {
     name: "SELF Doctrine & Mirror Prompt Sandbox",
     language: "json",
-    description: "Test state band transitions, cardinal axioms, and system prompt constraints.",
+    description:
+      "Test state band transitions, cardinal axioms, and system prompt constraints.",
     code: `{
   "callsign": "OperatorAlpha",
   "cognitiveState": "strain",
@@ -121,7 +126,9 @@ export function InteractiveSandbox({
   const [output, setOutput] = useState<string>("");
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [name, setName] = useState(projectName);
-  const [savedProjects, setSavedProjects] = useState<Array<{ name: string; template: SandboxTemplate; code: string }>>([]);
+  const [savedProjects, setSavedProjects] = useState<
+    Array<{ name: string; template: SandboxTemplate; code: string }>
+  >([]);
 
   useEffect(() => {
     // Load saved projects from localStorage
@@ -204,7 +211,7 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
   const handleSaveProject = () => {
     const updated = [
       { name, template, code },
-      ...savedProjects.filter((p) => p.name !== name),
+      ...savedProjects.filter(p => p.name !== name),
     ];
     setSavedProjects(updated);
     try {
@@ -236,19 +243,33 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={e => setName(e.target.value)}
             className="text-xl font-bold text-foreground bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleSaveProject} className="gap-2 text-xs">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveProject}
+            className="gap-2 text-xs"
+          >
             <Save className="size-3.5 text-primary" /> Save Project
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportProject} className="gap-2 text-xs">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportProject}
+            className="gap-2 text-xs"
+          >
             <Download className="size-3.5 text-emerald-400" /> Export Code
           </Button>
-          <Button size="sm" onClick={handleRunCode} className="gap-2 text-xs bg-primary text-primary-foreground">
+          <Button
+            size="sm"
+            onClick={handleRunCode}
+            className="gap-2 text-xs bg-primary text-primary-foreground"
+          >
             <Play className="size-3.5" /> Run Project
           </Button>
         </div>
@@ -256,7 +277,7 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
 
       {/* Template Selector Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {(Object.keys(STARTER_TEMPLATES) as SandboxTemplate[]).map((t) => (
+        {(Object.keys(STARTER_TEMPLATES) as SandboxTemplate[]).map(t => (
           <Button
             key={t}
             variant={template === t ? "default" : "outline"}
@@ -275,7 +296,8 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
         <Card className="border-border/60 shadow-md bg-slate-950 text-slate-100 flex flex-col">
           <CardHeader className="pb-3 border-b border-slate-800 flex flex-row items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
-              <Terminal className="size-4" /> Code Editor ({STARTER_TEMPLATES[template].language})
+              <Terminal className="size-4" /> Code Editor (
+              {STARTER_TEMPLATES[template].language})
             </div>
             <Button
               variant="ghost"
@@ -289,7 +311,7 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
           <CardContent className="p-0 flex-1">
             <textarea
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={e => setCode(e.target.value)}
               rows={18}
               className="w-full h-full p-4 font-mono text-xs bg-slate-950 text-slate-200 focus:outline-none resize-none leading-relaxed border-none"
               spellCheck={false}
@@ -302,7 +324,8 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
           <CardHeader className="pb-3 border-b border-border/40">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xs font-mono uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="size-4 text-primary" /> Execution & Live Preview Output
+                <Sparkles className="size-4 text-primary" /> Execution & Live
+                Preview Output
               </CardTitle>
             </div>
           </CardHeader>
@@ -320,7 +343,8 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
 
             {/* Terminal Console Output */}
             <div className="p-4 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 min-h-48 whitespace-pre-wrap leading-relaxed">
-              {output || `Ready to execute ${STARTER_TEMPLATES[template].name}. Click "Run Project" above.`}
+              {output ||
+                `Ready to execute ${STARTER_TEMPLATES[template].name}. Click "Run Project" above.`}
             </div>
           </CardContent>
         </Card>
@@ -330,7 +354,9 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
       {savedProjects.length > 0 && (
         <Card className="border-border/60">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Saved Sandbox Projects Library</CardTitle>
+            <CardTitle className="text-sm font-semibold">
+              Saved Sandbox Projects Library
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {savedProjects.map((p, idx) => (
@@ -344,12 +370,16 @@ Result: Doctrine compliance verified (100%). No probing detected.`);
                 className="p-3 rounded-lg border border-border/60 bg-muted/20 hover:border-primary/40 cursor-pointer transition-all text-xs"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-foreground">{p.name}</span>
+                  <span className="font-semibold text-foreground">
+                    {p.name}
+                  </span>
                   <Badge variant="outline" className="text-[10px] uppercase">
                     {p.template}
                   </Badge>
                 </div>
-                <p className="text-muted-foreground font-mono truncate">{p.code.slice(0, 50)}...</p>
+                <p className="text-muted-foreground font-mono truncate">
+                  {p.code.slice(0, 50)}...
+                </p>
               </div>
             ))}
           </CardContent>

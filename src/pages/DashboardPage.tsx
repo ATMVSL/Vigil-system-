@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { LearningEngineWidget } from "@/components/LearningEngineWidget";
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -126,7 +127,11 @@ export function DashboardPage() {
       </div>
 
       {/* Offline Status & Quota Indicator */}
-      <OfflineSyncIndicator />
+      {/* Offline Sync & Learning Engine Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <OfflineSyncIndicator />
+        <LearningEngineWidget />
+      </div>
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

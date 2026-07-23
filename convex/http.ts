@@ -44,7 +44,7 @@ http.route({
   handler: httpAction(async (_ctx, request) => {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "API key not configured" }), {
+      return new Response(JSON.stringify({ error: "Mirror presence is initializing. Grounded doctrine remains your garrison." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -127,7 +127,7 @@ http.route({
           const err = await toolResponse.text();
           console.error("OpenAI tool phase error:", err);
           return new Response(
-            JSON.stringify({ error: "Mirror system error" }),
+            JSON.stringify({ error: "Mirror connection interrupted. Grounded reflection engaged." }),
             {
               status: toolResponse.status,
               headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -201,7 +201,7 @@ http.route({
         return new Response(
           JSON.stringify({
             error:
-              "Mirror system temporary interference. Please verify API key.",
+              "Mirror connection interrupted momentarily. Grounded reflection engaged.",
           }),
           {
             status: openaiResponse.status,

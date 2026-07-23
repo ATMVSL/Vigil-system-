@@ -8,7 +8,7 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,30 +28,7 @@ export function OfflineSyncIndicator() {
 
   const createReflection = useMutation(api.mirrors.createReflection);
 
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      handleSync();
-    };
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    const interval = setInterval(() => {
-      setQuotaStatus(QuotaManager.checkCapStatus());
-      setQuotaUsage(QuotaManager.getUsage());
-      setPendingReflections(OfflineStorageManager.getOfflineReflections());
-    }, 5000);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
     const pending = OfflineStorageManager.getOfflineReflections();
     if (pending.length === 0 || !navigator.onLine) return;
 
@@ -78,7 +55,30 @@ export function OfflineSyncIndicator() {
       setPendingReflections(OfflineStorageManager.getOfflineReflections());
     }
     setIsSyncing(false);
-  };
+  }, [createReflection]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      handleSync();
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    const interval = setInterval(() => {
+      setQuotaStatus(QuotaManager.checkCapStatus());
+      setQuotaUsage(QuotaManager.getUsage());
+      setPendingReflections(OfflineStorageManager.getOfflineReflections());
+    }, 5000);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      clearInterval(interval);
+    };
+  }, [handleSync]);
 
   return (
     <Card className="border-border/60 bg-card shadow-sm mb-4">

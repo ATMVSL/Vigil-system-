@@ -1,4 +1,3 @@
-import { Code2 } from "lucide-react";
 import { InteractiveSandbox } from "@/components/InteractiveSandbox";
 
 export function SandboxPage() {

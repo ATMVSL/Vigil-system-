@@ -131,7 +131,7 @@ export function RiseCoursePlayer({
     {
       id: "overview",
       label: "Overview",
-      content: rawContent.slice(0, 350) + "...",
+      content: `${rawContent.slice(0, 350)}...`,
     },
     {
       id: "application",

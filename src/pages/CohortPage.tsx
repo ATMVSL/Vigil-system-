@@ -273,10 +273,14 @@ export function CohortPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                <label
+                  htmlFor="cohort-name-input"
+                  className="text-xs font-medium text-muted-foreground block mb-1"
+                >
                   Cohort Name
                 </label>
                 <input
+                  id="cohort-name-input"
                   type="text"
                   value={newCohortName}
                   onChange={e => setNewCohortName(e.target.value)}
@@ -286,10 +290,14 @@ export function CohortPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                <label
+                  htmlFor="cohort-type-select"
+                  className="text-xs font-medium text-muted-foreground block mb-1"
+                >
                   Cohort Type
                 </label>
                 <select
+                  id="cohort-type-select"
                   value={newCohortType}
                   onChange={(e: any) => setNewCohortType(e.target.value)}
                   className="w-full p-2.5 rounded-lg border border-border/60 bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -302,10 +310,14 @@ export function CohortPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                <label
+                  htmlFor="cohort-description-input"
+                  className="text-xs font-medium text-muted-foreground block mb-1"
+                >
                   Description
                 </label>
                 <textarea
+                  id="cohort-description-input"
                   rows={2}
                   value={newDescription}
                   onChange={e => setNewDescription(e.target.value)}

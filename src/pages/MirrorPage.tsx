@@ -32,8 +32,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { OfflineStorageManager } from "@/lib/offlineStorage";
-import { QuotaManager } from "@/lib/quotaManager";
 import { api } from "../../convex/_generated/api";
 
 // ─── VIGIL MIRROR — REAL-TIME VOICE INTERACTION ───
@@ -158,7 +156,7 @@ function extractSentences(text: string): {
 function generateFallbackDoctrineReflection(
   callsign: string,
   cognitiveState: string,
-  input: string,
+  _input: string,
 ): string {
   const c = callsign || "Operator";
   const state = (cognitiveState || "stable").toLowerCase();
@@ -196,7 +194,7 @@ async function streamMirrorChat(params: {
     onToken,
     onSentence,
     onComplete,
-    onError,
+    onError: _onError,
   } = params;
 
   const fallbackReflection = () => {

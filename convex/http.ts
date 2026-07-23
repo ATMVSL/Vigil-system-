@@ -114,7 +114,7 @@ http.route({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "gpt-5.4",
+              model: "gpt-4o",
               messages: currentMessages,
               temperature: 0.75,
               tools: MIRROR_TOOLS,
@@ -187,7 +187,7 @@ http.route({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-5.4",
+            model: "gpt-4o",
             messages: currentMessages,
             temperature: 0.75,
             stream: true,

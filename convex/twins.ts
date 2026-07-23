@@ -464,7 +464,7 @@ Respond in JSON:
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-5.4",
+            model: "gpt-4o",
             messages: [{ role: "system", content: judgePrompt }],
             max_tokens: 300,
             temperature: 0.2,

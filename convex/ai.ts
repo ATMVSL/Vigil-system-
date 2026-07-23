@@ -77,7 +77,7 @@ export const mirrorChat = action({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "gpt-5.4",
+              model: "gpt-4o",
               messages: currentMessages,
               temperature: 0.75,
               tools: MIRROR_TOOLS,
@@ -214,7 +214,7 @@ export const gradeTrainingResponse = action({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-5.4",
+            model: "gpt-4o",
             messages,
             max_tokens: 400,
             temperature: 0.5,
@@ -294,7 +294,7 @@ export const evaluateSqlQuery = action({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-5.4",
+            model: "gpt-4o",
             messages,
             max_tokens: 300,
             temperature: 0.3,
@@ -370,7 +370,7 @@ export const gradeAssessment = action({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-5.4",
+            model: "gpt-4o",
             messages,
             max_tokens: 300,
             temperature: 0.3,
